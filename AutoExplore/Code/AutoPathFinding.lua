@@ -52,7 +52,10 @@ AutoExplorePathFinding = {
         ForEach { class = "Tunnel", 
             filter = function(tunnel)
                 -- ignore tunnels under construction or inoperable
-                return not IsKindOf(tunnel, "ConstructionSite") and not tunnel.demolished
+                return not IsKindOf(tunnel, "ConstructionSite")
+                    and not tunnel.demolishing 
+                    and not tunnel.destroyed 
+                    and not tunnel.bulldozed
             end,
             exec = function(tunnel)
                 
@@ -171,8 +174,11 @@ AutoExplorePathFinding = {
         ForEach { class = "Tunnel", 
             filter = function(tunnel)
                 -- ignore tunnels under construction or inoperable
-                return not IsKindOf(tunnel, "ConstructionSite") and not tunnel.demolished
-            end,
+                return not IsKindOf(tunnel, "ConstructionSite")
+                    and not tunnel.demolishing 
+                    and not tunnel.destroyed 
+                    and not tunnel.bulldozed
+                end,
             exec = function(tunnel)
                 
                 -- get the entrances of the tunnel
