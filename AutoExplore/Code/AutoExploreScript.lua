@@ -8,7 +8,7 @@ end
 
 function AutoExploreInstallThread()
     -- PostNewMapLoaded seems to be too early?
-    AutoPathFinding:BuildZones()
+    AutoExplorePathFinding:BuildZones()
 
     CreateGameTimeThread(function()
         while true do
@@ -21,7 +21,7 @@ end
 function AutoExploreHandleRovers()
 
     -- first collect up all the zones which have tunnel entrances/exits
-    local zonesReachable = AutoPathFinding:GetZonesReachableViaTunnels()
+    local zonesReachable = AutoExplorePathFinding:GetZonesReachableViaTunnels()
 
     local showNotifications = AutoExploreConfigShowNotification()
 
@@ -31,7 +31,7 @@ function AutoExploreHandleRovers()
             -- Idle explorers only
             if rover.command == "Idle" then
 
-                local roverZone = AutoPathFinding:GetObjectZone(rover)
+                local roverZone = AutoExplorePathFinding:GetObjectZone(rover)
 
                 -- make sure there is plenty of battery to start with
                 if rover.battery_current > rover.battery_max * 0.6 then
@@ -39,13 +39,13 @@ function AutoExploreHandleRovers()
                         class = "SubsurfaceAnomaly",
                         filter = function(o, rz)
                             -- use the pathfinding helper to see if the anomaly is reachable
-                            return AutoPathFinding:CanReachObject(zonesReachable, rz, o)
+                            return AutoExplorePathFinding:CanReachObject(zonesReachable, rz, o)
                         end
                     }, rover, roverZone)
 
                     if obj then
                         -- check if the anomaly is in the same zone
-                        local objZone = AutoPathFinding:GetObjectZone(obj)
+                        local objZone = AutoExplorePathFinding:GetObjectZone(obj)
 
                         if objZone == roverZone then
                             if showNotifications == "all" then
@@ -66,7 +66,7 @@ function AutoExploreHandleRovers()
                             -- It is not in the same zone. Unfortunately, the "move" command behind "analyze" may
                             -- not use a tunnel if available, we have to manually travel
                             -- the chain of tunnels to get to the same zone
-                            local next = AutoPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+                            local next = AutoExplorePathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
 
                             -- we found it, let's move towards it
                             if next then
@@ -108,7 +108,7 @@ function AutoExploreHandleRovers()
                         filter = function(o, rz)
                             -- if not under construction
                             if not IsKindOf(o, "ConstructionSite") then
-                                return AutoPathFinding:CanReachObject(zonesReachable, rz, o)                            
+                                return AutoExplorePathFinding:CanReachObject(zonesReachable, rz, o)                            
                             end
                             return false
                         end
@@ -116,7 +116,7 @@ function AutoExploreHandleRovers()
 
                     if obj then
                         -- check if the cable is in the same zone
-                        local objZone = AutoPathFinding:GetObjectZone(obj)
+                        local objZone = AutoExplorePathFinding:GetObjectZone(obj)
                         -- yes, we can move there directly
                         if objZone == roverZone then
                             if showNotifications == "all" then
@@ -138,7 +138,7 @@ function AutoExploreHandleRovers()
                             -- route to it directly and will end up driving against the cliff
                             -- therefore, let's find a path to its zone through the
                             -- tunnel network and go one zone at a time
-                            local next = AutoPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+                            local next = AutoExplorePathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
 
                             -- we found it, let's move towards
                             if next then

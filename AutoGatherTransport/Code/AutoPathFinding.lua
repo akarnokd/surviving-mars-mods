@@ -1,7 +1,7 @@
 -- AutoPathFinding: Common logic for enhanced zone-based pathfinding assist
 -- @author akarnokd
 
-AutoExplorePathFinding = { 
+AutoGatherPathFinding = { 
     -- the map width in hexes (the height is irrelevant)
     mapWidth = 0,
     -- the zone numbers for a point hash

@@ -7,6 +7,8 @@ function OnMsg.LoadGame()
 end
 
 function AutoGatherInstallThread()
+    AutoGatherPathFinding:BuildZones()
+
     CreateGameTimeThread(function()
         while true do
             Sleep(300)
@@ -16,86 +18,189 @@ function AutoGatherInstallThread()
 end
 
 function AutoGatherHandleTransports()
+    -- first collect up all the zones which have tunnel entrances/exits
+    local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
+
     ForEach { class = "RCTransport", exec = function(rover)
         -- Enabled via the InfoPanel UI section "Auto Gather"
         if rover.auto_gather then
+
+            local roverZone = AutoGatherPathFinding:GetObjectZone(rover)
+
             -- Idle transporters only
             if rover.command == "Idle" then
                 if rover.battery_current > rover.battery_max * 0.6 then
 
                     -- if inventory is empty, search for a resource
                     if rover:GetStoredAmount() == 0 then
-                        AutoGatherFindDeposit(rover)
+                        AutoGatherFindDeposit(rover, zonesReachable, roverZone)
                     else
-                        AutoGatherUnloadContent(rover)
+                        AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                     end
                 else
-                    AutoGatherGoRecharge(rover)
+                    AutoGatherGoRecharge(rover, zonesReachable, roverZone)
                 end
             end
 
             if rover.command == "LoadingComplete" then
                 if rover.battery_current > rover.battery_max * 0.2 then
-                    AutoGatherUnloadContent(rover)
+                    AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                 else
-                    AutoGatherGoRecharge(rover)
+                    AutoGatherGoRecharge(rover, zonesReachable, roverZone)
                 end
             end
         end
     end }
 end
 
-function AutoGatherFindDeposit(rover)
+-- Dedicated actions
+
+function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
     local showNotifications = AutoGatherConfigShowNotification()
 
     local obj, distance = FindNearest({ 
-        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers"
-    }, rover)
+        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers",
+        filter = function(o, rz)
+            -- use the pathfinding helper to see if the anomaly is reachable
+            return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)
+        end
+    }, rover, roverZone)
 
     if obj then
-        if showNotifications == "all" then
-            AddCustomOnScreenNotification(
-                "AutoGatherTransportGather", 
-                T{rover.name}, 
-                T{"Started gathering resource(s)"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
-        end
+        -- check if the resource is in the same zone
+        local objZone = AutoGatherPathFinding:GetObjectZone(obj)
 
-        rover:InteractWithObject(obj, "load")
+        if objZone == roverZone then
+            if showNotifications == "all" then
+                AddCustomOnScreenNotification(
+                    "AutoGatherTransportGather", 
+                    T{rover.name}, 
+                    T{"Started gathering resource(s)"}, 
+                    "UI/Icons/Notifications/research_2.tga",
+                    false,
+                    {
+                        expiration = 15000
+                    }
+                )
+            end
+
+            rover:InteractWithObject(obj, "load")
+        else
+            -- It is not in the same zone. Unfortunately, the "move" command behind "analyze" may
+            -- not use a tunnel if available, we have to manually travel
+            -- the chain of tunnels to get to the same zone
+            local next = AutoGatherPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+
+            -- we found it, let's move towards it
+            if next then
+                if showNotifications == "all" then
+                    -- notify about it
+                    AddCustomOnScreenNotification(
+                        "AutoGatherTransport", 
+                        T{rover.name}, 
+                        T{"Started gathering resource(s) (via Tunnel)"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+                -- this will use the tunnel, after that, the idle state will trigger again
+                rover:InteractWithObject(next, "move")
+            else
+                -- there is no path to destination at the moment, report it as an error
+                if showNotifications == "all" or showNotifications == "problems" then
+                    AddCustomOnScreenNotification(
+                        "AutoGatherTransportNoTunnel", 
+                        T{rover.name}, 
+                        T{"Unable to find a working tunnel leading to the resource(s)"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+            end
+        end
     end
 end
 
-function AutoGatherUnloadContent(rover)
+function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
     local showNotifications = AutoGatherConfigShowNotification()
 
     local obj, distance = FindNearest({ 
         class = "UniversalStorageDepot",
-        filter = function(o)
-            return not IsKindOf(o, "SupplyRocket")
+        filter = function(o, rz)
+            if not IsKindOf(o, "SupplyRocket") then
+                return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)
+            end
+            return false
         end
-    }, rover)
+    }, rover, roverZone)
 
     if obj then
-        if showNotifications == "all" then
-            AddCustomOnScreenNotification(
-                "AutoGatherTransportDump", 
-                T{rover.name}, 
-                T{"Started dumping resource(s)"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
+        -- check if the cable is in the same zone
+        local objZone = AutoGatherPathFinding:GetObjectZone(obj)
+        -- yes, we can move there directly
+        if objZone == roverZone then
+            if showNotifications == "all" then
+                AddCustomOnScreenNotification(
+                    "AutoGatherTransportDump", 
+                    T{rover.name}, 
+                    T{"Started dumping resource(s)"}, 
+                    "UI/Icons/Notifications/research_2.tga",
+                    false,
+                    {
+                        expiration = 15000
+                    }
+                )
+            end
+            -- This brings up the select resource dialog and needs user interaction
+            -- rover:InteractWithObject(obj, "unload")
+            rover:SetCommand("DumpCargo", obj:GetPos(), "all")
+        else
+            -- no, it is in another zone which is known to be reachable
+            -- unfortunately, the GoTo is likely unable to find a
+            -- route to it directly and will end up driving against the cliff
+            -- therefore, let's find a path to its zone through the
+            -- tunnel network and go one zone at a time
+            local next = AutoGatherPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+
+            -- we found it, let's move towards
+            if next then
+                if showNotifications == "all" then
+                    -- notify about it
+                    AddCustomOnScreenNotification(
+                        "AutoGatherTransportDump", 
+                        T{rover.name}, 
+                        T{"Started dumping resource(s) (via Tunnel)"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+                -- this will use the tunnel, after that, the idle state will trigger again
+                rover:InteractWithObject(next, "move")
+            else
+                -- there is no path to destination at the moment, report it as an error
+                if showNotifications == "all" or showNotifications == "problems" then
+                    AddCustomOnScreenNotification(
+                        "AutoGatherTransportNoTunnel", 
+                        T{rover.name}, 
+                        T{"Unable to find a working tunnel to dump resource(s)"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+            end
         end
-        -- This brings up the select resource dialog and needs user interaction
-        -- rover:InteractWithObject(obj, "unload")
-        rover:SetCommand("DumpCargo", obj:GetPos(), "all")
     else
         if showNotifications == "all" or showNotifications == "problems" then
             AddCustomOnScreenNotification(
@@ -112,34 +217,83 @@ function AutoGatherUnloadContent(rover)
     end
 end
 
-function AutoGatherGoRecharge(rover)
+function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
     local showNotifications = AutoGatherConfigShowNotification()
 
     -- otherwise find the nearest power cable to recharge
     local obj, distance = FindNearest ({ class = "ElectricityGridElement",
-        filter = function(obj, ...)
-            return not IsKindOf(obj, "ConstructionSite")
+        filter = function(o, rz)
+            -- if not under construction
+            if not IsKindOf(o, "ConstructionSite") then
+                return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)                            
+            end
+            return false
         end
-    }, rover)
+    }, rover, roverZone)
 
     if obj then
-        if showNotifications == "all" then
-            AddCustomOnScreenNotification(
-                "AutoGatherTransportRecharge", 
-                T{rover.name}, 
-                T{"Going to recharge"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
+        -- check if the cable is in the same zone
+        local objZone = AutoGatherPathFinding:GetObjectZone(obj)
+        -- yes, we can move there directly
+        if objZone == roverZone then
+            if showNotifications == "all" then
+                AddCustomOnScreenNotification(
+                    "AutoGatherTransportRecharge", 
+                    T{rover.name}, 
+                    T{"Going to recharge"}, 
+                    "UI/Icons/Notifications/research_2.tga",
+                    false,
+                    {
+                        expiration = 15000
+                    }
+                )
+            end
+            rover:InteractWithObject(obj, "recharge")
+        else
+            -- no, it is in another zone which is known to be reachable
+            -- unfortunately, the GoTo is likely unable to find a
+            -- route to it directly and will end up driving against the cliff
+            -- therefore, let's find a path to its zone through the
+            -- tunnel network and go one zone at a time
+            local next = AutoGatherPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+
+            -- we found it, let's move towards
+            if next then
+                if showNotifications == "all" then
+                    -- notify about it
+                    AddCustomOnScreenNotification(
+                        "GatherTransportRecharge", 
+                        T{rover.name}, 
+                        T{"Going to recharge (via Tunnel)"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+                -- this will use the tunnel, after that, the idle state will trigger again
+                rover:InteractWithObject(next, "move")
+            else
+                -- there is no path to destination at the moment, report it as an error
+                if showNotifications == "all" or showNotifications == "problems" then
+                    AddCustomOnScreenNotification(
+                        "GatherTransportNoTunnel", 
+                        T{rover.name}, 
+                        T{"Unable to find a working tunnel to the recharge spot"}, 
+                        "UI/Icons/Notifications/research_2.tga",
+                        false,
+                        {
+                            expiration = 15000
+                        }
+                    )
+                end
+            end
         end
-        rover:InteractWithObject(obj, "recharge")
     else
         if showNotifications == "all" or showNotifications == "problems" then
             AddCustomOnScreenNotification(
-                "AutoGatherTransportNoRecharge", 
+                "GatherTransportNoRecharge", 
                 T{rover.name}, 
                 T{"Unable to find a recharge spot"}, 
                 "UI/Icons/Notifications/research_2.tga",
@@ -151,6 +305,8 @@ function AutoGatherGoRecharge(rover)
         end
     end
 end
+
+-- Setup UI
 
 function OnMsg.ClassesBuilt()
     AutoGatherAddInfoSection()
@@ -191,6 +347,7 @@ function AutoGatherAddInfoSection()
     )
 end
 
+-- Setup ModConfig UI
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoGatherConfigShowNotification()
