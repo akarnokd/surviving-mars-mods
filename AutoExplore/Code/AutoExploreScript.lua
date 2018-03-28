@@ -213,14 +213,14 @@ function AutoExploreAddInfoSection()
             "RolloverTitle", T{"Auto Explore"},
             "RolloverHint",  T{"<left_click> Toggle setting"},
             "OnContextUpdate",
-				function(self, context)
+                function(self, context)
                     if context.auto_explore then
                         self:SetTitle(T{"Auto Explore (ON)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
-					else
+                    else
                         self:SetTitle(T{"Auto Explore (OFF)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
-					end
+                    end
                 end,
         }, {
             PlaceObj("XTemplateFunc", {

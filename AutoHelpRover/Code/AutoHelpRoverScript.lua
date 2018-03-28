@@ -206,14 +206,14 @@ function AutoHelpAddInfoSection()
             "RolloverTitle", T{"Auto Help"},
             "RolloverHint",  T{"<left_click> Toggle setting"},
             "OnContextUpdate",
-				function(self, context)
+                function(self, context)
                     if context.auto_help then
                         self:SetTitle(T{"Auto Help (ON)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
-					else
+                    else
                         self:SetTitle(T{"Auto Help (OFF)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
-					end
+                    end
                 end,
         }, {
             PlaceObj("XTemplateFunc", {

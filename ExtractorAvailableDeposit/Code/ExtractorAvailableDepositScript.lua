@@ -18,8 +18,8 @@ end
 function ExtractorAvailableDepositAddInfoSection()
     table.insert(XTemplates.sectionMine[1], 
         PlaceObj("XTemplateTemplate", {
-			"__template", "InfopanelText", 
-			"Text", T{"<ExtractorAvailableDepositInfo>"}
+            "__template", "InfopanelText", 
+            "Text", T{"<ExtractorAvailableDepositInfo>"}
         })
     )
 end

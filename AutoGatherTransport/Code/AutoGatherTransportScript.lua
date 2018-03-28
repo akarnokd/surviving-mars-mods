@@ -167,14 +167,14 @@ function AutoGatherAddInfoSection()
             "RolloverTitle", T{"Auto Gather"},
             "RolloverHint",  T{"<left_click> Toggle setting"},
             "OnContextUpdate",
-				function(self, context)
+                function(self, context)
                     if context.auto_gather then
                         self:SetTitle(T{"Auto Gather (ON)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
-					else
+                    else
                         self:SetTitle(T{"Auto Gather (OFF)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
-					end
+                    end
                 end,
         }, {
             PlaceObj("XTemplateFunc", {
