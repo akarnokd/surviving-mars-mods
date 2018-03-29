@@ -28,12 +28,12 @@ function AutoDemolishConcreteExtractorHandler()
     if enabledAction ~= "off" then
         -- It's called regolith extractor
         ForEach { class = "RegolithExtractor", 
-            -- ignore those that are being constructed
-            filter = function(o)
-                return not IsKindOf(o, "ConstructionSite")
-            end,
             -- execute for each fund extractor
             exec = function(extractor)
+                -- ignore those that are being constructed
+                if IsKindOf(extractor, "ConstructionSite")
+                    return
+                end
                 -- Check if the available amount is zero
                 if extractor:GetAmount() == 0 then
                     -- extractor.demolishing gets nil'd when the demolish action completes

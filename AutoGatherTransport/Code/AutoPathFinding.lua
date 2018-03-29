@@ -50,14 +50,14 @@ AutoGatherPathFinding = {
         local reachableZones = { }
 
         ForEach { class = "Tunnel", 
-            filter = function(tunnel)
-                -- ignore tunnels under construction or inoperable
-                return not IsKindOf(tunnel, "ConstructionSite") 
-                    and not tunnel.demolishing 
-                    and not tunnel.destroyed 
-                    and not tunnel.bulldozed
-            end,
             exec = function(tunnel)
+                -- ignore tunnels under construction or inoperable
+                if IsKindOf(tunnel, "ConstructionSite")
+                        or tunnel.demolishing 
+                        or tunnel.destroyed 
+                        or tunnel.bulldozed then
+                    return
+                end
                 
                 -- get the entrances of the tunnel
                 local entrance, start_point = tunnel:GetEntrance(nil, "tunnel_entrance")
@@ -172,14 +172,14 @@ AutoGatherPathFinding = {
         
         -- find tunnels
         ForEach { class = "Tunnel", 
-            filter = function(tunnel)
-                -- ignore tunnels under construction or inoperable
-                return not IsKindOf(tunnel, "ConstructionSite")
-                    and not tunnel.demolishing 
-                    and not tunnel.destroyed 
-                    and not tunnel.bulldozed
-            end,
             exec = function(tunnel)
+                -- ignore tunnels under construction or inoperable
+                if IsKindOf(tunnel, "ConstructionSite")
+                        or tunnel.demolishing 
+                        or tunnel.destroyed 
+                        or tunnel.bulldozed then
+                    return
+                end
                 
                 -- get the entrances of the tunnel
                 local entrance, start_point = tunnel:GetEntrance(nil, "tunnel_entrance")
