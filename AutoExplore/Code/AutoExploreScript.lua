@@ -31,7 +31,7 @@ function AutoExploreHandleRovers()
             -- Idle explorers only
             if rover.command == "Idle" then
 
-                local roverZone = AutoExplorePathFinding:GetObjectZone(rover)
+                local roverZone = AutoExplorePathFinding:GetObjectZone(rover) or 0
 
                 -- make sure there is plenty of battery to start with
                 if rover.battery_current > rover.battery_max * 0.6 then

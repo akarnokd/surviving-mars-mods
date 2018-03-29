@@ -11,7 +11,7 @@ function AutoGatherInstallThread()
 
     CreateGameTimeThread(function()
         while true do
-            Sleep(300)
+            Sleep(1000)
             AutoGatherHandleTransports() 
         end
     end)
@@ -25,7 +25,7 @@ function AutoGatherHandleTransports()
         -- Enabled via the InfoPanel UI section "Auto Gather"
         if rover.auto_gather then
 
-            local roverZone = AutoGatherPathFinding:GetObjectZone(rover)
+            local roverZone = AutoGatherPathFinding:GetObjectZone(rover) or 0
 
             -- Idle transporters only
             if rover.command == "Idle" then
@@ -59,7 +59,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
     local showNotifications = AutoGatherConfigShowNotification()
 
     local obj, distance = FindNearest({ 
-        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers",
+        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup",
         filter = function(o, rz)
             -- use the pathfinding helper to see if the anomaly is reachable
             return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)
@@ -84,7 +84,14 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
                 )
             end
 
-            rover:InteractWithObject(obj, "load")
+            -- surface groups can't be targeted en-masse
+            if IsKindOf(obj, "SurfaceDepositGroup") then
+                -- must target its components
+                local subDeposit = obj.group[1]
+                rover:InteractWithObject(subDeposit, "load")
+            else
+                rover:InteractWithObject(obj, "load")
+            end
         else
             -- It is not in the same zone. Unfortunately, the "move" command behind "analyze" may
             -- not use a tunnel if available, we have to manually travel

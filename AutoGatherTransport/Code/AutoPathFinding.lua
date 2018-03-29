@@ -242,7 +242,7 @@ AutoGatherPathFinding = {
         self.zoneCount = 0
 
          -- cell diameter for adjacency testing
-        local nearbyRadius = const.GridSpacing / 2
+        local nearbyRadius = const.GridSpacing / 2.1
         
         -- the keys are combined coordinates that are passable
         local accessibilityTable = { }
@@ -250,7 +250,7 @@ AutoGatherPathFinding = {
         -- rovers have this value in game
         local pfclass = 1
 
-        local grid = ObjectGrid
+        local ogrid = ObjectGrid
 
         -- for each cell on the map
         for y = 1, mapHeight do
@@ -263,7 +263,9 @@ AutoGatherPathFinding = {
                 local x = xRect - (y / 2)
 
                 -- is there anything?
-                if HexGridGetObject(grid, x, y) then
+                if HexGridGetObject(ogrid, x, y) then
+                    --or HexGridGet(lgrid, point(x, y)
+
                     -- if so, ignore it and consider the location to be passable
                     -- in case the building gets removed later on
                     -- or is already there to begin with
