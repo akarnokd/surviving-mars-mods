@@ -31,7 +31,7 @@ function AutoDemolishConcreteExtractorHandler()
             -- execute for each fund extractor
             exec = function(extractor)
                 -- ignore those that are being constructed
-                if IsKindOf(extractor, "ConstructionSite")
+                if IsKindOf(extractor, "ConstructionSite") then
                     return
                 end
                 -- Check if the available amount is zero
