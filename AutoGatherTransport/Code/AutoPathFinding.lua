@@ -242,7 +242,7 @@ AutoGatherPathFinding = {
         self.zoneCount = 0
 
          -- cell diameter for adjacency testing
-        local nearbyRadius = const.GridSpacing / 2.1
+        local nearbyRadius = const.GridSpacing --/ 2
         
         -- the keys are combined coordinates that are passable
         local accessibilityTable = { }
