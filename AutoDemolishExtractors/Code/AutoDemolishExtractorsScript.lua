@@ -59,12 +59,19 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
                 end
                 local amount = 0
 
-                -- water extractors don't have GetAmount for remaining water
-                if buildingClass == "WaterExtractor" then
-                    amount = (extractor:GetDeposit()):GetAmount()
-                else
+                -- some extractors have direct value
+                if extractor:IsKindOf("TerrainDepositExtractor") and extractor.found_deposit then
                     amount = extractor:GetAmount()
                 end
+                -- others have to be gathered from nearby deposit info
+                if extractor.nearby_deposits then
+                    for i = 1, #extractor.nearby_deposits do
+                        if IsValid((extractor.nearby_deposits)[i]) then
+                            amount = amount + ((extractor.nearby_deposits)[i]).amount
+                        end
+                    end
+                end
+
                 -- Check if the available amount is zero
                 if amount == 0 then
                     -- extractor.demolishing gets nil'd when the demolish action completes

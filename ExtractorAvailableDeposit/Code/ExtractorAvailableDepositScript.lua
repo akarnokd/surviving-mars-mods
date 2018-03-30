@@ -22,4 +22,10 @@ function ExtractorAvailableDepositAddInfoSection()
             "Text", T{"<ExtractorAvailableDepositInfo>"}
         })
     )
+    table.insert(XTemplates.sectionWaterProduction[1], 
+        PlaceObj("XTemplateTemplate", {
+            "__template", "InfopanelText", 
+            "Text", T{"<ExtractorAvailableDepositInfo>"}
+        })
+    )
 end
