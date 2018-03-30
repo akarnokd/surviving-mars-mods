@@ -9,6 +9,14 @@ Mine.GetExtractorAvailableDepositInfo = function(self)
     return lines[#lines]
 end
 
+WaterExtractor.GetExtractorAvailableDepositInfo = function(self)
+    local lines = { }
+    -- fills in "lines" with deposit information
+    AvailableDeposits(self, lines)
+    -- the last line should contain the actual deposit info already styled
+    return lines[#lines]
+end
+
 -- install the new section
 function OnMsg.ClassesBuilt()
     ExtractorAvailableDepositAddInfoSection()

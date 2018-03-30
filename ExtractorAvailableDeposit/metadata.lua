@@ -6,10 +6,10 @@ return PlaceObj('ModDef', {
 	'id', "hnp4m1c",
 	'steam_id', "1343197684",
 	'author', "akarnokd",
-	'version', 9,
+	'version', 11,
 	'lua_revision', 228184,
 	'code', {
 		"Code/ExtractorAvailableDepositScript.lua",
 	},
-	'saved', 1522104565,
+	'saved', 1522435884,
 })
