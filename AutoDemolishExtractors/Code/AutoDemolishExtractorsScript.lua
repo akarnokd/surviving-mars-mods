@@ -60,7 +60,7 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
                 local amount = 0
 
                 -- some extractors have direct value
-                if extractor:IsKindOf("TerrainDepositExtractor") and extractor.found_deposit then
+                if extractor:IsKindOf("TerrainDepositExtractor") then
                     amount = extractor:GetAmount()
                 end
                 -- others have to be gathered from nearby deposit info
@@ -74,6 +74,12 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
 
                 -- Check if the available amount is zero
                 if amount == 0 then
+                    -- skip a round to work around the case when amount is 0
+                    -- but the extraction hasn't even begun yet
+                    if not extractor.auto_demolish_visited then
+                        extractor.auto_demolish_visited = true
+                        return
+                    end
                     -- extractor.demolishing gets nil'd when the demolish action completes
                     -- enabledAction can be "salvage" or "all" at this point
                     if (not extractor.destroyed) and (not extractor.demolishing) and (not extractor:IsDemolishing()) then
