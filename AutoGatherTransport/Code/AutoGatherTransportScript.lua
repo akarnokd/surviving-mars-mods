@@ -53,6 +53,11 @@ function AutoGatherHandleTransports()
     end }
 end
 
+-- Mod's global
+AutoGatherTransport = { }
+-- Base ID for translatable text
+AutoGatherTransport.StringIdBase = 20182401
+
 -- Dedicated actions
 
 function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
@@ -75,7 +80,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportGather", 
                     T{rover.name}, 
-                    T{"Started gathering resource(s)"}, 
+                    T{AutoGatherTransport.StringIdBase, "Started gathering resource(s)"}, 
                     "UI/Icons/Notifications/research_2.tga",
                     false,
                     {
@@ -105,7 +110,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "AutoGatherTransport", 
                         T{rover.name}, 
-                        T{"Started gathering resource(s) (via Tunnel)"}, 
+                        T{AutoGatherTransport.StringIdBase + 1, "Started gathering resource(s) (via Tunnel)"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -121,7 +126,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "AutoGatherTransportNoTunnel", 
                         T{rover.name}, 
-                        T{"Unable to find a working tunnel leading to the resource(s)"}, 
+                        T{AutoGatherTransport.StringIdBase + 2, "Unable to find a working tunnel leading to the resource(s)"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -156,7 +161,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportDump", 
                     T{rover.name}, 
-                    T{"Started dumping resource(s)"}, 
+                    T{AutoGatherTransport.StringIdBase + 3, "Started dumping resource(s)"}, 
                     "UI/Icons/Notifications/research_2.tga",
                     false,
                     {
@@ -182,7 +187,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "AutoGatherTransportDump", 
                         T{rover.name}, 
-                        T{"Started dumping resource(s) (via Tunnel)"}, 
+                        T{AutoGatherTransport.StringIdBase + 4, "Started dumping resource(s) (via Tunnel)"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -198,7 +203,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "AutoGatherTransportNoTunnel", 
                         T{rover.name}, 
-                        T{"Unable to find a working tunnel to dump resource(s)"}, 
+                        T{AutoGatherTransport.StringIdBase + 5, "Unable to find a working tunnel to dump resource(s)"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -213,7 +218,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
             AddCustomOnScreenNotification(
                 "AutoGatherTransportDumpError", 
                 T{rover.name}, 
-                T{"Unable to find a Universal Storage Depot"}, 
+                T{AutoGatherTransport.StringIdBase + 6, "Unable to find a Universal Storage Depot"}, 
                 "UI/Icons/Notifications/research_2.tga",
                 false,
                 {
@@ -247,7 +252,7 @@ function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportRecharge", 
                     T{rover.name}, 
-                    T{"Going to recharge"}, 
+                    T{AutoGatherTransport.StringIdBase + 7, "Going to recharge"}, 
                     "UI/Icons/Notifications/research_2.tga",
                     false,
                     {
@@ -271,7 +276,7 @@ function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "GatherTransportRecharge", 
                         T{rover.name}, 
-                        T{"Going to recharge (via Tunnel)"}, 
+                        T{AutoGatherTransport.StringIdBase + 8, "Going to recharge (via Tunnel)"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -287,7 +292,7 @@ function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
                     AddCustomOnScreenNotification(
                         "GatherTransportNoTunnel", 
                         T{rover.name}, 
-                        T{"Unable to find a working tunnel to the recharge spot"}, 
+                        T{AutoGatherTransport.StringIdBase + 9, "Unable to find a working tunnel to the recharge spot"}, 
                         "UI/Icons/Notifications/research_2.tga",
                         false,
                         {
@@ -302,7 +307,7 @@ function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
             AddCustomOnScreenNotification(
                 "GatherTransportNoRecharge", 
                 T{rover.name}, 
-                T{"Unable to find a recharge spot"}, 
+                T{AutoGatherTransport.StringIdBase + 10, "Unable to find a recharge spot"}, 
                 "UI/Icons/Notifications/research_2.tga",
                 false,
                 {
@@ -325,17 +330,17 @@ function AutoGatherAddInfoSection()
             "__context_of_kind", "RCTransport",
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
-            "Title", T{"Auto Gather"},
-            "RolloverText", T{"Enable/Disable automatic gathering of surface deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
-            "RolloverTitle", T{"Auto Gather"},
-            "RolloverHint",  T{"<left_click> Toggle setting"},
+            "Title", T{AutoGatherTransport.StringIdBase + 11, "Auto Gather"},
+            "RolloverText", T{AutoGatherTransport.StringIdBase + 12, "Enable/Disable automatic gathering of surface deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
+            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 13, "Auto Gather"},
+            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 14, "<left_click> Toggle setting"},
             "OnContextUpdate",
                 function(self, context)
                     if context.auto_gather then
-                        self:SetTitle(T{"Auto Gather (ON)"})
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 15, "Auto Gather (ON)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
                     else
-                        self:SetTitle(T{"Auto Gather (OFF)"})
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 16, "Auto Gather (OFF)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
                     end
                 end,
@@ -368,18 +373,18 @@ end
 function OnMsg.ModConfigReady()
 
     ModConfig:RegisterMod("AutoGatherTransport", -- ID
-        T{"AutoGatherTransport"}, -- Optional display name, defaults to ID
-        T{"Transports automatically gather surface deposits and bring them next to a Universal Depot, keep themselves charged"} -- Optional description
+        T{AutoGatherTransport.StringIdBase + 17, "AutoGatherTransport"}, -- Optional display name, defaults to ID
+        T{AutoGatherTransport.StringIdBase + 18, "Transports automatically gather surface deposits and bring them next to a Universal Depot, keep themselves charged"} -- Optional description
     ) 
 
     ModConfig:RegisterOption("AutoGatherTransport", "Notifications", {
-        name = T{"Notifications"},
-        desc = T{"Enable/Disable notifications of the rovers in Auto mode."},
+        name = T{AutoGatherTransport.StringIdBase + 19, "Notifications"},
+        desc = T{AutoGatherTransport.StringIdBase + 20, "Enable/Disable notifications of the rovers in Auto mode."},
         type = "enum",
         values = {
-            {value = "all", label = T{"All"}},
-            {value = "problems", label = T{"Problems only"}},
-            {value = "off", label = T{"Off"}}
+            {value = "all", label = T{AutoGatherTransport.StringIdBase + 21, "All"}},
+            {value = "problems", label = T{AutoGatherTransport.StringIdBase + 22, "Problems only"}},
+            {value = "off", label = T{AutoGatherTransport.StringIdBase + 23, "Off"}}
         },
         default = "all" 
     })
