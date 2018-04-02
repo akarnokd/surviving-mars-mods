@@ -10,11 +10,17 @@ end
 function AutoHelpInstallThread()
     CreateGameTimeThread(function()
         while true do
-            Sleep(300)
+            Sleep(1500)
             AutoHelpHandleRovers() 
         end
     end)
 end
+
+-- Mod's global
+AutoHelpRover = { }
+-- Base ID for translatable text
+AutoHelpRover.StringIdBase = 20183402
+
 
 -- Evaluates all rovers and issues commands to idle and marked ones
 function AutoHelpHandleRovers()
@@ -49,7 +55,7 @@ function AutoHelpHandleRovers()
                                 AddCustomOnScreenNotification(
                                     "AutoHelpRoverFix", 
                                     T{ rover.name }, 
-                                    T{ "Going to fix: " .. obj.name }, 
+                                    T{ AutoHelpRover.StringIdBase, "Going to fix: " .. obj.name }, 
                                     "UI/Icons/Notifications/research_2.tga",
                                     false,
                                     {
@@ -92,7 +98,7 @@ function AutoHelpHandleRovers()
                             AddCustomOnScreenNotification(
                                 "AutoHelpRoverRechargeOther", 
                                 T{ rover.name }, 
-                                T{ "Going to recharge: " .. obj2.name }, 
+                                T{ AutoHelpRover.StringIdBase + 1, "Going to recharge: " .. obj2.name }, 
                                 "UI/Icons/Notifications/research_2.tga",
                                 false,
                                 {
@@ -128,7 +134,7 @@ function AutoHelpHandleRovers()
                                 AddCustomOnScreenNotification(
                                     "AutoHelpRoverReturnToBase", 
                                     T{ rover.name }, 
-                                    T{ "Returning from the field" }, 
+                                    T{ AutoHelpRover.StringIdBase + 2, "Returning from the field" }, 
                                     "UI/Icons/Notifications/research_2.tga",
                                     false,
                                     {
@@ -166,7 +172,7 @@ function AutoHelpGoRecharge(rover)
             AddCustomOnScreenNotification(
                 "AutoHelpRoverRecharge", 
                 T{rover.name}, 
-                T{"Going to recharge self"}, 
+                T{AutoHelpRover.StringIdBase + 3, "Going to recharge self"}, 
                 "UI/Icons/Notifications/research_2.tga",
                 false,
                 {
@@ -180,7 +186,7 @@ function AutoHelpGoRecharge(rover)
             AddCustomOnScreenNotification(
                 "AutoHelpRoverNoRecharge", 
                 T{rover.name}, 
-                T{"Unable to find a recharge spot"}, 
+                T{AutoHelpRover.StringIdBase + 4, "Unable to find a recharge spot"}, 
                 "UI/Icons/Notifications/research_2.tga",
                 false,
                 {
@@ -201,17 +207,17 @@ function AutoHelpAddInfoSection()
             "__context_of_kind", "RCRover",
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
-            "Title", T{"Auto Help"},
-            "RolloverText", T{"Enable/Disable automatic repair/recharge of malfunctioning or out of battery rovers.<newline><newline>(AutoHelpRover mod)"},
-            "RolloverTitle", T{"Auto Help"},
-            "RolloverHint",  T{"<left_click> Toggle setting"},
+            "Title", T{AutoHelpRover.StringIdBase + 5, "Auto Help"},
+            "RolloverText", T{AutoHelpRover.StringIdBase + 6, "Enable/Disable automatic repair/recharge of malfunctioning or out of battery rovers.<newline><newline>(AutoHelpRover mod)"},
+            "RolloverTitle", T{AutoHelpRover.StringIdBase + 7, "Auto Help"},
+            "RolloverHint",  T{AutoHelpRover.StringIdBase + 8, "<left_click> Toggle setting"},
             "OnContextUpdate",
                 function(self, context)
                     if context.auto_help then
-                        self:SetTitle(T{"Auto Help (ON)"})
+                        self:SetTitle(T{AutoHelpRover.StringIdBase + 9, "Auto Help (ON)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
                     else
-                        self:SetTitle(T{"Auto Help (OFF)"})
+                        self:SetTitle(T{AutoHelpRover.StringIdBase + 10, "Auto Help (OFF)"})
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
                     end
                 end,
@@ -243,18 +249,18 @@ end
 function OnMsg.ModConfigReady()
 
     ModConfig:RegisterMod("AutoHelpRover", -- ID
-        T{"AutoHelpRover"}, -- Optional display name, defaults to ID
-        T{"Rovers automatically fix and/or recharge other rovers, keep themselves charged"} -- Optional description
+        T{AutoHelpRover.StringIdBase + 11, "AutoHelpRover"}, -- Optional display name, defaults to ID
+        T{AutoHelpRover.StringIdBase + 12, "Rovers automatically fix and/or recharge other rovers, keep themselves charged"} -- Optional description
     ) 
 
     ModConfig:RegisterOption("AutoHelpRover", "Notifications", {
-        name = T{"Notifications"},
-        desc = T{"Enable/Disable notifications of the rovers in Auto mode."},
+        name = T{AutoHelpRover.StringIdBase + 13, "Notifications"},
+        desc = T{AutoHelpRover.StringIdBase + 14, "Enable/Disable notifications of the rovers in Auto mode."},
         type = "enum",
         values = {
-            {value = "all", label = T{"All"}},
-            {value = "problems", label = T{"Problems only"}},
-            {value = "off", label = T{"Off"}}
+            {value = "all", label = T{AutoHelpRover.StringIdBase + 15, "All"}},
+            {value = "problems", label = T{AutoHelpRover.StringIdBase + 16, "Problems only"}},
+            {value = "off", label = T{AutoHelpRover.StringIdBase + 17, "Off"}}
         },
         default = "all" 
     })
