@@ -19,6 +19,11 @@ function AutoDemolishExtractorsInstallThread()
     end)
 end
 
+-- Mod's global
+AutoDemolishExtractors = { }
+-- Base ID for translatable text
+AutoDemolishExtractors.StringIdBase = 20184406
+
 -- Automation logic
 -- ===========================================================
 
@@ -87,7 +92,7 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
                         if showNotifications == "all" then
                             AddCustomOnScreenNotification("AutoDemolishExtractorSalvage", 
                                 T{name}, 
-                                T{"Salvaging depleted " .. name}, 
+                                T{AutoDemolishExtractors.StringIdBase, "Salvaging depleted " .. name}, 
                                 "UI/Icons/Notifications/deposit_depleted.tga",
                                 false, { expiration = 15000 }
                             )
@@ -104,7 +109,7 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
                             if showNotifications == "all" then
                                 AddCustomOnScreenNotification("AutoDemolishExtractorDecomission", 
                                     T{name}, 
-                                    T{"Clearing depleted " .. name}, 
+                                    T{AutoDemolishExtractors.StringIdBase + 1, "Clearing depleted " .. name}, 
                                     "UI/Icons/Notifications/deposit_depleted.tga",
                                     false, { expiration = 15000 }
                                 )
@@ -130,7 +135,13 @@ end
 -- See if ModConfig is installed and operations are enabled for a particular building class
 function AutoDemolishExtractorsEnabledAction(buildingClass)
     if rawget(_G, "ModConfig") then
-        return ModConfig:Get("AutoDemolishExtractors", "Action" .. buildingClass)
+        local nano = ModConfig:Get("AutoDemolishExtractors", "NanoRefinement")
+        local act = ModConfig:Get("AutoDemolishExtractors", "Action" .. buildingClass)
+
+        if UICity:IsTechResearched("NanoRefinement") and nano == "off" then
+            return "off"
+        end
+        return act
     end
     return "all"
 end
@@ -143,22 +154,33 @@ function OnMsg.ModConfigReady()
 
     -- Register the mod
     ModConfig:RegisterMod("AutoDemolishExtractors",
-        T{"Auto Demolish Extractors"},
-        T{"Automatically salvage and clear (i.e., demolish) depleted Extractors"}
+        T{AutoDemolishExtractors.StringIdBase + 2, "Auto Demolish Extractors"},
+        T{AutoDemolishExtractors.StringIdBase + 3, "Automatically salvage and clear (i.e., demolish) depleted Extractors"}
     ) 
 
     -- Register the notification settings
     ModConfig:RegisterOption("AutoDemolishExtractors", "Notifications", {
-        name = T{"Notifications"},
-        desc = T{"Enable/Disable notifications of automatic demolition of Extractors."},
+        name = T{AutoDemolishExtractors.StringIdBase + 4, "Notifications"},
+        desc = T{AutoDemolishExtractors.StringIdBase + 5, "Enable/Disable notifications of automatic demolition of Extractors."},
         type = "enum",
         values = {
-            {value = "all", label = T{"All"}},
+            {value = "all", label = T{AutoDemolishExtractors.StringIdBase + 14, "All"}},
             -- Not applicable here
             -- {value = "problems", label = T{"Problems only"}},
-            {value = "off", label = T{"Off"}}
+            {value = "off", label = T{AutoDemolishExtractors.StringIdBase + 15, "Off"}}
         },
         default = "all" 
+    })
+
+    ModConfig:RegisterOption("AutoDemolishExtractors", "NanoRefinement", {
+        name = T{AutoDemolishExtractors.StringIdBase + 11, "Nano refinement"},
+        desc = T{AutoDemolishExtractors.StringIdBase + 12, "What to do when the Nano Refinement research has been acquired, which allows extractors to still mine depleted resources for small amounts of material."},
+        type = "enum",
+        values = {
+            {value = "on", label = T{AutoDemolishExtractors.StringIdBase + 13, "Keep doing the action"}},
+            {value = "off", label = T{AutoDemolishExtractors.StringIdBase + 14, "Do nothing"}}
+        },
+        default = "on" 
     })
 
     AutoDemolishExtractorsRegisterOptionFor("RegolithExtractor", "Concrete Extractor")
@@ -171,13 +193,13 @@ function AutoDemolishExtractorsRegisterOptionFor(buildingClass, name)
     
     -- Register the action to take
     ModConfig:RegisterOption("AutoDemolishExtractors", "Action" .. buildingClass, {
-        name = T{"Action for " .. name},
-        desc = T{"Action to take when a " .. name .. " gets depleted.<newline>Clearing requires the Decomission Protocol research."},
+        name = T{AutoDemolishExtractors.StringIdBase + 6, "Action for " .. name},
+        desc = T{AutoDemolishExtractors.StringIdBase + 7, "Action to take when a " .. name .. " gets depleted.<newline>Clearing requires the Decomission Protocol research."},
         type = "enum",
         values = {
-            {value = "all", label = T{"Salvage & Clear"}},
-            {value = "salvage", label = T{"Salvage only"}},
-            {value = "off", label = T{"Do nothing"}}
+            {value = "all", label = T{AutoDemolishExtractors.StringIdBase + 8, "Salvage & Clear"}},
+            {value = "salvage", label = T{AutoDemolishExtractors.StringIdBase + 9, "Salvage only"}},
+            {value = "off", label = T{AutoDemolishExtractors.StringIdBase + 10, "Do nothing"}}
         },
         default = "all" 
     })

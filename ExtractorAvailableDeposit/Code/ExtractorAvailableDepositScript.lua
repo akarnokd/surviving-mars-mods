@@ -17,7 +17,7 @@ WaterExtractor.GetExtractorAvailableDepositInfo = function(self)
     return lines[#lines]
 end
 
--- install the new section
+    -- install the new section
 function OnMsg.ClassesBuilt()
     ExtractorAvailableDepositAddInfoSection()
 end
@@ -32,7 +32,9 @@ function ExtractorAvailableDepositAddInfoSection()
     )
     table.insert(XTemplates.sectionWaterProduction[1], 
         PlaceObj("XTemplateTemplate", {
-            "__template", "InfopanelText", 
+            "__template", "InfopanelText",
+            -- Moisture Vaporators have infinite source
+            '__condition', function (parent, context) return not IsKindOf(context, "MoistureVaporator") end, 
             "Text", T{"<ExtractorAvailableDepositInfo>"}
         })
     )

@@ -18,6 +18,12 @@ function AutoShuttleConstructionInstallThread()
     end)
 end
 
+-- Mod's global
+AutoShuttleConstruction = { }
+-- Base ID for translatable text
+AutoShuttleConstruction.StringIdBase = 20185406
+
+
 -- Automation Logic initialization
 -- ==========================================================================
 function AutoShuttleConstructionManageHubs()
@@ -88,8 +94,8 @@ function AutoShuttleConstructionManageHubs()
                     if showNotifications == "all" then
                         AddCustomOnScreenNotification(
                             "AutoShuttleConstructionQueued", 
-                            T{"Shuttle hub"}, 
-                            T{"Shuttle construction queued"}, 
+                            T{AutoShuttleConstruction.StringIdBase, "Shuttle hub"}, 
+                            T{AutoShuttleConstruction.StringIdBase + 1, "Shuttle construction queued"}, 
                             "UI/Icons/Notifications/research_2.tga",
                             false,
                             {
@@ -133,29 +139,29 @@ end
 function OnMsg.ModConfigReady()
 
     ModConfig:RegisterMod("AutoShuttleConstruction",
-        T{"AutoShuttleConstruction"},
-        T{"Automatically construct Shuttles at Shuttle Hubs if there are plenty of resources and the hub is not full"}
+        T{AutoShuttleConstruction.StringIdBase + 2, "AutoShuttleConstruction"},
+        T{AutoShuttleConstruction.StringIdBase + 3, "Automatically construct Shuttles at Shuttle Hubs if there are plenty of resources and the hub is not full"}
     ) 
 
     ModConfig:RegisterOption("AutoShuttleConstruction", "Notifications", {
-        name = T{"Notifications"},
-        desc = T{"Enable/Disable notifications of the rovers in Auto mode."},
+        name = T{AutoShuttleConstruction.StringIdBase + 4, "Notifications"},
+        desc = T{AutoShuttleConstruction.StringIdBase + 5, "Enable/Disable notifications of the rovers in Auto mode."},
         type = "enum",
         values = {
-            {value = "all", label = T{"All"}},
-            {value = "problems", label = T{"Problems only"}},
-            {value = "off", label = T{"Off"}}
+            {value = "all", label = T{AutoShuttleConstruction.StringIdBase + 6, "All"}},
+            {value = "problems", label = T{AutoShuttleConstruction.StringIdBase + 7, "Problems only"}},
+            {value = "off", label = T{AutoShuttleConstruction.StringIdBase + 8, "Off"}}
         },
         default = "all" 
     })
 
     ModConfig:RegisterOption("AutoShuttleConstruction", "Threshold", {
-        name = T{"Threshold"},
-        desc = T{"How many times more resources are needed than the base cost of a Shuttle.<newline>Setting it to Always will ignore resource constraints."},
+        name = T{AutoShuttleConstruction.StringIdBase + 9, "Threshold"},
+        desc = T{AutoShuttleConstruction.StringIdBase + 10, "How many times more resources are needed than the base cost of a Shuttle.<newline>Setting it to Always will ignore resource constraints."},
         type = "enum",
         values = {
-            {value = "off", label = T{"Off"}},
-            {value = "0", label = T{"Always"}},
+            {value = "off", label = T{AutoShuttleConstruction.StringIdBase + 11, "Off"}},
+            {value = "0", label = T{AutoShuttleConstruction.StringIdBase + 12, "Always"}},
             {value = "5", label = T{"5x"}},
             {value = "10", label = T{"10x"}},
             {value = "15", label = T{"15x"}},
