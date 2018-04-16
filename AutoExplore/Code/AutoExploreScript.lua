@@ -12,8 +12,9 @@ function AutoExploreInstallThread()
 
     CreateGameTimeThread(function()
         while true do
-            Sleep(1000)
             AutoExploreHandleRovers() 
+            local period = AutoExploreConfigUpdatePeriod()
+            Sleep(tonumber(period))
         end
     end)
 end
@@ -58,13 +59,45 @@ function AutoExploreInitRover(rover)
     end
 end
 
+-- find the nearest object to the target based on additional filtering
+function AutoExploreFindNearest(objects, filter, target)
+    local targetPos = target:GetPos()
+    local nearestObj = nil
+    local nearestDist = 0
+
+    for i, o in ipairs(objects) do
+        if filter(o) then
+            local p = o:GetPos()
+            local dist = (targetPos:x() - p:x())^2 + (targetPos:y() - p:y())^2
+
+            if nearestObj == nil then
+                nearestObj = o
+                nearestDist = dist
+            else
+                if nearestDist > dist then
+                    nearestObj = o
+                    nearestDist = dist
+                end
+            end
+        end
+    end
+
+    return nearestObj, nearestDist
+end
+
 -- handle all the relevant rovers
 function AutoExploreHandleRovers()
+
+    -- cache all surface anomalies
+    local anomalies = GetObjects { class = "SubsurfaceAnomaly" }
 
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoExplorePathFinding:GetZonesReachableViaTunnels()
 
     local showNotifications = AutoExploreConfigShowNotification()
+
+    -- percentage of remaining battery to trigger recharge
+    local threshold = tonumber(AutoExploreBatteryThreshold())
 
     ForEach { class = "ExplorerRover", exec = function(rover)
         -- initialize scan filter to true if necessary
@@ -79,10 +112,9 @@ function AutoExploreHandleRovers()
                 local roverZone = AutoExplorePathFinding:GetObjectZone(rover) or 0
 
                 -- make sure there is plenty of battery to start with
-                if rover.battery_current > rover.battery_max * 0.6 then
-                    local obj, distance = FindNearest({ 
-                        class = "SubsurfaceAnomaly",
-                        filter = function(o, rz)
+                if rover.battery_current > rover.battery_max * threshold / 100.0 then
+                    local obj, distance = AutoExploreFindNearest(anomalies, 
+                        function(o)
                             -- check if the specific anomaly type is enabled for scanning on this rover
                             if not AutoExploreCanScanAnomaly(o, rover) then
                                 return false
@@ -96,9 +128,9 @@ function AutoExploreHandleRovers()
                                 or not o.rover_assigned.auto_explore);
 
                             -- use the pathfinding helper to see if the anomaly is reachable
-                            return can_target and AutoExplorePathFinding:CanReachObject(zonesReachable, rz, o)
+                            return can_target and AutoExplorePathFinding:CanReachObject(zonesReachable, roverZone, o)
                         end
-                    }, rover, roverZone)
+                    , rover)
 
                     if obj then
                         -- check if the anomaly is in the same zone
@@ -463,14 +495,6 @@ function AutoExploreAddInfoSection()
         })
     )
 
-            --[[
-            PlaceObj('XTemplateTemplate', {
-                '__template', "InfopanelButton",
-                'RolloverTitle', T{AutoExplore.StringIdBase + 22, "Scan alien"},
-    --                    'OnPressParam', "ToggleScanAlien",
-                'Icon', "UI/Icons/Anomaly_Event.tga",
-            }), 
-    --]]
 end
 
 -- See if ModConfig is installed and that notifications are enabled
@@ -479,6 +503,22 @@ function AutoExploreConfigShowNotification()
         return ModConfig:Get("AutoExplore", "Notifications")
     end
     return "all"
+end
+
+-- See if ModConfig is installed and that notifications are enabled
+function AutoExploreConfigUpdatePeriod()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoExplore", "UpdatePeriod")
+    end
+    return "1000"
+end
+
+-- Battery threshold
+function AutoExploreBatteryThreshold()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoExplore", "BatteryThreshold")
+    end
+    return "60"
 end
 
 -- ModConfig signals "ModConfigReady" when it can be manipulated
@@ -500,5 +540,40 @@ function OnMsg.ModConfigReady()
         },
         default = "all" 
     })
-   
+
+    ModConfig:RegisterOption("AutoExplore", "UpdatePeriod", {
+        name = T{AutoExplore.StringIdBase + 39, "Update period"},
+        desc = T{AutoExplore.StringIdBase + 40, "Time between trying to find and explore anomalies with rovers<newline>Pick a larger value if your colony has become large and you get lag."},
+        type = "enum",
+        values = {
+            {value = "1000", label = T{"1 s"}},
+            {value = "1500", label = T{"1.5 s"}},
+            {value = "2000", label = T{"2 s"}},
+            {value = "2500", label = T{"2.5 s"}},
+            {value = "3000", label = T{"3 s"}},
+            {value = "5000", label = T{"5 s"}},
+            {value = "10000", label = T{"10 s"}},
+        },
+        default = "100" 
+    })
+
+    ModConfig:RegisterOption("AutoExplore", "BatteryThreshold", {
+        name = T{AutoExplore.StringIdBase + 41, "Battery threshold"},
+        desc = T{AutoExplore.StringIdBase + 42, "Percentage of battery charge below which the rover will go recharge itself."},
+        type = "enum",
+        values = {
+            {value = "10", label = T{"10%"}},
+            {value = "20", label = T{"20%"}},
+            {value = "30", label = T{"30%"}},
+            {value = "40", label = T{"40%"}},
+            {value = "50", label = T{"50%"}},
+            {value = "60", label = T{"60%"}},
+            {value = "70", label = T{"70%"}},
+            {value = "80", label = T{"80%"}},
+            {value = "90", label = T{"90%"}},
+            {value = "95", label = T{"95%"}},
+        },
+        default = "60" 
+    })
+
 end
