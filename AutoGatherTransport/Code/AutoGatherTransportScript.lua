@@ -11,15 +11,46 @@ function AutoGatherInstallThread()
 
     CreateGameTimeThread(function()
         while true do
-            Sleep(1000)
-            AutoGatherHandleTransports() 
+            AutoGatherHandleTransports()
+            local period = AutoGatherConfigUpdatePeriod()
+            Sleep(tonumber(period))
         end
     end)
+end
+
+-- find the nearest object to the target based on additional filtering
+function AutoGatherFindNearest(objects, filter, target)
+    local targetPos = target:GetPos()
+    local nearestObj = nil
+    local nearestDist = 0
+
+    for i, o in ipairs(objects) do
+        if filter(o) then
+            local p = o:GetPos()
+            local dist = (targetPos:x() - p:x())^2 + (targetPos:y() - p:y())^2
+
+            if nearestObj == nil then
+                nearestObj = o
+                nearestDist = dist
+            else
+                if nearestDist > dist then
+                    nearestObj = o
+                    nearestDist = dist
+                end
+            end
+        end
+    end
+
+    return nearestObj, nearestDist
 end
 
 function AutoGatherHandleTransports()
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
+    -- percentage of remaining battery to trigger recharge
+    local threshold = tonumber(AutoGatherBatteryThreshold())
+
+    local deposits = GetObjects { classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup" }
 
     ForEach { class = "RCTransport", exec = function(rover)
         -- Enabled via the InfoPanel UI section "Auto Gather"
@@ -29,11 +60,11 @@ function AutoGatherHandleTransports()
 
             -- Idle transporters only
             if rover.command == "Idle" then
-                if rover.battery_current > rover.battery_max * 0.6 then
+                if rover.battery_current > rover.battery_max * threshold / 100.0 then
 
                     -- if inventory is empty, search for a resource
                     if rover:GetStoredAmount() == 0 then
-                        AutoGatherFindDeposit(rover, zonesReachable, roverZone)
+                        AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
                     else
                         AutoGatherUnloadContent(rover, zonesReachable, roverZone)
                     end
@@ -60,16 +91,15 @@ AutoGatherTransport.StringIdBase = 20182401
 
 -- Dedicated actions
 
-function AutoGatherFindDeposit(rover, zonesReachable, roverZone)
+function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
     local showNotifications = AutoGatherConfigShowNotification()
 
-    local obj, distance = FindNearest({ 
-        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup",
-        filter = function(o, rz)
+    local obj, distance = AutoGatherFindNearest(deposits,
+        function(o, rz)
             -- use the pathfinding helper to see if the anomaly is reachable
-            return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)
-        end
-    }, rover, roverZone)
+            return AutoGatherPathFinding:CanReachObject(zonesReachable, roverZone, o)
+        end,
+        rover)
 
     if obj then
         -- check if the resource is in the same zone
@@ -142,6 +172,13 @@ end
 function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
     local showNotifications = AutoGatherConfigShowNotification()
 
+    -- if unload target set, dump there
+    if rover.auto_unload_at then
+        rover:SetCommand("DumpCargo", rover.auto_unload_at, "all")
+        return
+    end
+
+    -- otherwise, find the nearest depot
     local obj, distance = FindNearest({ 
         class = "UniversalStorageDepot",
         filter = function(o, rz)
@@ -357,6 +394,48 @@ function AutoGatherAddInfoSection()
             })
         })
     )
+
+        -- current mod location, strip off the Code/AutoGatherTransportScript.lua from the end
+    local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
+
+    table.insert(XTemplates.ipRover[1], 
+    PlaceObj("XTemplateTemplate", {
+        "__context_of_kind", "RCTransport",
+        "__template", "InfopanelActiveSection",
+        "Icon", this_mod_dir.."UI/unload_at_nearest.tga",
+        "Title", T{AutoGatherTransport.StringIdBase + 28, "Auto unload at"},
+        "RolloverText", T{AutoGatherTransport.StringIdBase + 29, "Click and select the screen center location to unload to, click again to clear the unload location"},
+        "RolloverTitle", T{AutoGatherTransport.StringIdBase + 30, "Auto unload at"},
+        "RolloverHint",  T{AutoGatherTransport.StringIdBase + 31, "<left_click> Select screen center as the unload location or clear previous location"},
+        "OnContextUpdate",
+            function(self, context)
+                local coord = context.auto_unload_at
+                if coord then
+                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 32, "Auto unload at: "..(coord:x())..", "..(coord:y()) })
+                    self:SetIcon(this_mod_dir.."UI/unload_at.tga")
+                else
+                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 33, "Auto unload at: nearest"})
+                    self:SetIcon(this_mod_dir.."UI/unload_at_nearest.tga")
+                end
+            end,
+    }, {
+        PlaceObj("XTemplateFunc", {
+            "name", "OnActivate(self, context)", 
+            "parent", function(parent, context)
+                    return parent.parent
+                end,
+            "func", function(self, context)
+                    if context.auto_unload_at then
+                        context["auto_unload_at"] = nil
+                    else
+                        context.auto_unload_at = GetTerrainCursorXY(UIL.GetScreenSize()/2)
+                    end
+                    ObjModified(context)
+                end
+        })
+    })
+)
+
 end
 
 -- Setup ModConfig UI
@@ -367,6 +446,23 @@ function AutoGatherConfigShowNotification()
         return ModConfig:Get("AutoGatherTransport", "Notifications")
     end
     return "all"
+end
+
+
+-- See if ModConfig is installed and that notifications are enabled
+function AutoGatherConfigUpdatePeriod()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoGatherTransport", "UpdatePeriod")
+    end
+    return "1000"
+end
+
+-- Battery threshold
+function AutoGatherBatteryThreshold()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoGatherTransport", "BatteryThreshold")
+    end
+    return "60"
 end
 
 -- ModConfig signals "ModConfigReady" when it can be manipulated
@@ -389,4 +485,39 @@ function OnMsg.ModConfigReady()
         default = "all" 
     })
     
+    ModConfig:RegisterOption("AutoGatherTransport", "UpdatePeriod", {
+        name = T{AutoGatherTransport.StringIdBase + 24, "Update period"},
+        desc = T{AutoGatherTransport.StringIdBase + 25, "Time between trying to find and explore anomalies with rovers<newline>Pick a larger value if your colony has become large and you get lag."},
+        type = "enum",
+        values = {
+            {value = "1000", label = T{"1 s"}},
+            {value = "1500", label = T{"1.5 s"}},
+            {value = "2000", label = T{"2 s"}},
+            {value = "2500", label = T{"2.5 s"}},
+            {value = "3000", label = T{"3 s"}},
+            {value = "5000", label = T{"5 s"}},
+            {value = "10000", label = T{"10 s"}},
+        },
+        default = "100" 
+    })
+
+    ModConfig:RegisterOption("AutoGatherTransport", "BatteryThreshold", {
+        name = T{AutoGatherTransport.StringIdBase + 26, "Battery threshold"},
+        desc = T{AutoGatherTransport.StringIdBase + 27, "Percentage of battery charge below which the rover will go recharge itself."},
+        type = "enum",
+        values = {
+            {value = "10", label = T{"10%"}},
+            {value = "20", label = T{"20%"}},
+            {value = "30", label = T{"30%"}},
+            {value = "40", label = T{"40%"}},
+            {value = "50", label = T{"50%"}},
+            {value = "60", label = T{"60%"}},
+            {value = "70", label = T{"70%"}},
+            {value = "80", label = T{"80%"}},
+            {value = "90", label = T{"90%"}},
+            {value = "95", label = T{"95%"}},
+        },
+        default = "60" 
+    })
+
 end
