@@ -27,6 +27,10 @@ AutoShuttleConstruction.StringIdBase = 20185406
 -- Automation Logic initialization
 -- ==========================================================================
 function AutoShuttleConstructionManageHubs()
+    -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
 
     if not ResourceOverviewObj then
         -- not ready yet?

@@ -87,6 +87,10 @@ end
 
 -- handle all the relevant rovers
 function AutoExploreHandleRovers()
+    -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
 
     -- cache all surface anomalies
     local anomalies = GetObjects { class = "SubsurfaceAnomaly" }

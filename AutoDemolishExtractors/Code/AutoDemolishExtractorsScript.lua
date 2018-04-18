@@ -28,6 +28,11 @@ AutoDemolishExtractors.StringIdBase = 20184406
 -- ===========================================================
 
 function AutoDemolishExtractorsHandler()
+    -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
+
     local showNotifications = AutoDemolishExtractorsShowNotification()
 
 

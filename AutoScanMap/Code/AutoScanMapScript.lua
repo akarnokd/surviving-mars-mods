@@ -28,6 +28,11 @@ function AutoScanMap()
         return
     end
 
+    -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
+
     -- check the global queue for ongoing exploration
     if g_ExplorationQueue and #g_ExplorationQueue == 0 then
 

@@ -55,6 +55,11 @@ end
 
 
 function AutoGatherHandleTransports()
+   -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
+
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
     -- percentage of remaining battery to trigger recharge

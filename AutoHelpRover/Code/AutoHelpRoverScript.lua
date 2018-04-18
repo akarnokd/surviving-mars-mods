@@ -59,6 +59,10 @@ end
 
 -- Evaluates all rovers and issues commands to idle and marked ones
 function AutoHelpHandleRovers()
+    -- game is not yet initialized
+    if not mapdata.GameLogic then
+        return
+    end
 
     local showNotifications = AutoHelpConfigShowNotification()
 
