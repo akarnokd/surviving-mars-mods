@@ -22,6 +22,40 @@ AutoHelpRover = { }
 -- Base ID for translatable text
 AutoHelpRover.StringIdBase = 20183402
 
+-- enumerate objects of a given City label
+function AutoHelpForEachLabel(label, func)
+    for _, obj in ipairs(UICity.labels[label] or empty_table) do
+        if func(obj) == "break" then
+            return
+        end
+    end
+end
+
+-- find the nearest object to the target based on additional filtering
+function AutoHelpFindNearest(objects, filter, target)
+    local targetPos = target:GetPos()
+    local nearestObj = nil
+    local nearestDist = 0
+
+    for i, o in ipairs(objects) do
+        if filter(o) then
+            local p = o:GetPos()
+            local dist = (targetPos:x() - p:x())^2 + (targetPos:y() - p:y())^2
+
+            if nearestObj == nil then
+                nearestObj = o
+                nearestDist = dist
+            else
+                if nearestDist > dist then
+                    nearestObj = o
+                    nearestDist = dist
+                end
+            end
+        end
+    end
+
+    return nearestObj, nearestDist
+end
 
 -- Evaluates all rovers and issues commands to idle and marked ones
 function AutoHelpHandleRovers()
@@ -30,21 +64,23 @@ function AutoHelpHandleRovers()
 
     local batteryThreshold = tonumber(AutoHelpBatteryThreshold())
 
-    ForEach { class = "RCRover", exec = function(rover)
+    local allRovers = UICity.labels.Rover
+
+    AutoHelpForEachLabel("RCRover", function(rover)
         -- Enabled via the InfoPanel UI section "Auto Help"
         if rover.auto_help then
             -- If the rover is currently idle
             -- Or is in "Commanding Drones" state
             if rover.command == "Idle" then
                 -- find nearest rover with a malfunction
-                local obj, distance = FindNearest({ 
-                    class = "BaseRover",
+                local obj, distance = AutoHelpFindNearest( 
+                    allRovers,
                     -- which is not the rover being evaluated
                     -- and has the state malfunction
-                    filter = function(o, r)
-                        return o ~= r and o.command == "Malfunction"
+                    function(o)
+                        return o ~= rover and o.command == "Malfunction"
                     end
-                }, rover, rover)
+                , rover)
 
                 -- there is a malfunctioning other rover
                 if obj then
@@ -83,14 +119,14 @@ function AutoHelpHandleRovers()
                 end
 
                 -- find nearest rover with out of battery
-                local obj2, distance2 = FindNearest({ 
-                    class = "BaseRover",
+                local obj2, distance2 = AutoHelpFindNearest( 
+                    allRovers,
                     -- which is not the rover being evaluated
                     -- and has the state no battery
-                    filter = function(o, r)
-                        return o ~= r and o.command == "NoBattery"
+                    function(o)
+                        return o ~= rover and o.command == "NoBattery"
                     end
-                }, rover, rover)
+                , rover)
 
                 if obj2 then
                     -- always make sure the rover is fully charged before
@@ -151,7 +187,7 @@ function AutoHelpHandleRovers()
                 end
             end
         end
-    end }
+    end)
 end
 
 -- Locate a power cable
