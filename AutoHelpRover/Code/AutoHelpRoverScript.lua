@@ -10,8 +10,9 @@ end
 function AutoHelpInstallThread()
     CreateGameTimeThread(function()
         while true do
-            Sleep(1500)
             AutoHelpHandleRovers() 
+            local period = AutoHelpConfigUpdatePeriod()
+            Sleep(tonumber(period))
         end
     end)
 end
@@ -26,6 +27,8 @@ AutoHelpRover.StringIdBase = 20183402
 function AutoHelpHandleRovers()
 
     local showNotifications = AutoHelpConfigShowNotification()
+
+    local batteryThreshold = tonumber(AutoHelpBatteryThreshold())
 
     ForEach { class = "RCRover", exec = function(rover)
         -- Enabled via the InfoPanel UI section "Auto Help"
@@ -49,7 +52,7 @@ function AutoHelpHandleRovers()
                     -- otherwise make sure there is plenty of charge
                     if rover.work_radius < HexAxialDistance(rover, obj) then
                         -- when its further away, make sure there is plenty of power
-                        if rover.battery_current > rover.battery_max * 0.9 then
+                        if rover.battery_current > rover.battery_max * batteryThreshold / 100.0 then
                             if showNotifications == "all" then
                                 -- display the notification
                                 AddCustomOnScreenNotification(
@@ -92,7 +95,7 @@ function AutoHelpHandleRovers()
                 if obj2 then
                     -- always make sure the rover is fully charged before
                     -- recharging somebody else
-                    if rover.battery_current > rover.battery_max * 0.9 then
+                    if rover.battery_current > rover.battery_max * batteryThreshold / 100.0 then
                         if showNotifications == "all" then
                             -- display the notification
                             AddCustomOnScreenNotification(
@@ -245,6 +248,23 @@ function AutoHelpConfigShowNotification()
     return "all"
 end
 
+-- See if ModConfig is installed and that notifications are enabled
+function AutoHelpConfigUpdatePeriod()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoHelpRover", "UpdatePeriod")
+    end
+    return "1500"
+end
+
+-- Battery threshold
+function AutoHelpBatteryThreshold()
+    if rawget(_G, "ModConfig") then
+        return ModConfig:Get("AutoHelpRover", "BatteryThreshold")
+    end
+    return "90"
+end
+
+
 -- ModConfig signals "ModConfigReady" when it can be manipulated
 function OnMsg.ModConfigReady()
 
@@ -264,5 +284,42 @@ function OnMsg.ModConfigReady()
         },
         default = "all" 
     })
+
+        
+    ModConfig:RegisterOption("AutoHelpRover", "UpdatePeriod", {
+        name = T{AutoGatherTransport.StringIdBase + 18, "Update period"},
+        desc = T{AutoGatherTransport.StringIdBase + 19, "Time between trying to fix or recharge other rovers<newline>Pick a larger value if your colony has become large and you get lag."},
+        type = "enum",
+        values = {
+            {value = "1000", label = T{"1 s"}},
+            {value = "1500", label = T{"1.5 s"}},
+            {value = "2000", label = T{"2 s"}},
+            {value = "2500", label = T{"2.5 s"}},
+            {value = "3000", label = T{"3 s"}},
+            {value = "5000", label = T{"5 s"}},
+            {value = "10000", label = T{"10 s"}},
+        },
+        default = "1500" 
+    })
+
     
+    ModConfig:RegisterOption("AutoHelpRover", "BatteryThreshold", {
+        name = T{AutoGatherTransport.StringIdBase + 20, "Battery threshold"},
+        desc = T{AutoGatherTransport.StringIdBase + 21, "Percentage of battery charge below which the rover will go recharge itself."},
+        type = "enum",
+        values = {
+            {value = "10", label = T{"10%"}},
+            {value = "20", label = T{"20%"}},
+            {value = "30", label = T{"30%"}},
+            {value = "40", label = T{"40%"}},
+            {value = "50", label = T{"50%"}},
+            {value = "60", label = T{"60%"}},
+            {value = "70", label = T{"70%"}},
+            {value = "80", label = T{"80%"}},
+            {value = "90", label = T{"90%"}},
+            {value = "95", label = T{"95%"}},
+        },
+        default = "90" 
+    })
+
 end

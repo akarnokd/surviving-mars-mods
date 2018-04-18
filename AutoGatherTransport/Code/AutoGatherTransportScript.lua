@@ -498,7 +498,7 @@ function OnMsg.ModConfigReady()
             {value = "5000", label = T{"5 s"}},
             {value = "10000", label = T{"10 s"}},
         },
-        default = "100" 
+        default = "1000" 
     })
 
     ModConfig:RegisterOption("AutoGatherTransport", "BatteryThreshold", {

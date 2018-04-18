@@ -83,6 +83,10 @@ function AutoScanMap()
                 closest = scanCandidates[ AsyncRand (#scanCandidates)]
             end
             closest:QueueForExploration()
+            -- prevent the scan animation from being deployed on the main map view
+            if GetInGameInterfaceMode() ~= "overview" then
+                closest:SetScanFx(false)
+            end
             OverviewModeDialog:UpdateSectorRollover(closest)
         end
 
