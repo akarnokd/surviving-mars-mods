@@ -55,7 +55,7 @@ end
 
 
 function AutoGatherHandleTransports()
-   -- game is not yet initialized
+    -- game is not yet initialized
     if not mapdata.GameLogic then
         return
     end
