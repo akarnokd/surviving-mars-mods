@@ -188,23 +188,26 @@ AutoExplorePathFinding = {
                 local startZone = self:GetPointZone(start_point)
                 local endZone = self:GetPointZone(exit_point)
 
-                -- if this object is in the same zone as the source
-                if startZone == sourceZone then
-                    -- and the target can be reached from the other side
-                    if self:CanReachZone(zonesReachable, endZone, destinationZone, sourceZone) then
-                        -- target the near side tunnel
-                        table.insert(candidates, tunnel)
-                        -- for now, we don't try to find an optimal path
-                        return "break"
+                -- ignore tunnels connecting the same zone
+                if startZone ~= endZone then
+                    -- if this object is in the same zone as the source
+                    if startZone == sourceZone then
+                        -- and the target can be reached from the other side
+                        if self:CanReachZone(zonesReachable, endZone, destinationZone, sourceZone) then
+                            -- target the near side tunnel
+                            table.insert(candidates, tunnel)
+                            -- for now, we don't try to find an optimal path
+                            return "break"
+                        end
                     end
-                end
-                if endZone == sourceZone then
-                    -- and the target can be reached from the other side
-                    if self:CanReachZone(zonesReachable, startZone, destinationZone, sourceZone) then
-                        -- target the far side tunnel
-                        table.insert(candidates, tunnel.linked_obj)
-                        -- for now, we don't try to find an optimal path
-                        return "break"
+                    if endZone == sourceZone then
+                        -- and the target can be reached from the other side
+                        if self:CanReachZone(zonesReachable, startZone, destinationZone, sourceZone) then
+                            -- target the far side tunnel
+                            table.insert(candidates, tunnel.linked_obj)
+                            -- for now, we don't try to find an optimal path
+                            return "break"
+                        end
                     end
                 end
             end

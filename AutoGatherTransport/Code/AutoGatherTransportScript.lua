@@ -44,15 +44,41 @@ function AutoGatherFindNearest(objects, filter, target)
     return nearestObj, nearestDist
 end
 
+-- enumerate objects of a given City label
+function AutoGatherForEachLabel(label, func)
+    for _, obj in ipairs(UICity.labels[label] or empty_table) do
+        if func(obj) == "break" then
+            return
+        end
+    end
+end
+
+
 function AutoGatherHandleTransports()
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
     -- percentage of remaining battery to trigger recharge
     local threshold = tonumber(AutoGatherBatteryThreshold())
 
-    local deposits = GetObjects { classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup" }
+    local deposits = GetObjects { 
+        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup" 
+    }
 
-    ForEach { class = "RCTransport", exec = function(rover)
+    --[[
+    local deposits = { }
+
+    for _, obj in pairs(UICity.labels.SurfaceDeposit) do
+        deposits[#deposits + 1] = obj
+    end
+
+    for _, obj in pairs(SurfaceDepositGroups) do
+        if obj.holder then
+            deposits[#deposits + 1] = obj.holder
+        end
+    end
+    --]]
+
+    AutoGatherForEachLabel("RCTransport", function(rover)
         -- Enabled via the InfoPanel UI section "Auto Gather"
         if rover.auto_gather then
 
@@ -81,7 +107,7 @@ function AutoGatherHandleTransports()
                 end
             end
         end
-    end }
+    end)
 end
 
 -- Mod's global
@@ -174,6 +200,18 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
 
     -- if unload target set, dump there
     if rover.auto_unload_at then
+        if showNotifications == "all" then
+            AddCustomOnScreenNotification(
+                "AutoGatherTransportDump", 
+                T{rover.name}, 
+                T{AutoGatherTransport.StringIdBase + 3, "Started dumping resource(s)"}, 
+                "UI/Icons/Notifications/research_2.tga",
+                false,
+                {
+                    expiration = 15000
+                }
+            )
+        end
         rover:SetCommand("DumpCargo", rover.auto_unload_at, "all")
         return
     end
