@@ -503,7 +503,10 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigShowNotification()
-    if rawget(_G, "ModConfig") then
+    if AutoExplore["mod_config_check"] == nil then
+        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+    end
+    if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "Notifications")
     end
     return "all"
@@ -511,7 +514,10 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigUpdatePeriod()
-    if rawget(_G, "ModConfig") then
+    if AutoExplore["mod_config_check"] == nil then
+        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+    end
+    if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "UpdatePeriod")
     end
     return "1000"
@@ -519,7 +525,10 @@ end
 
 -- Battery threshold
 function AutoExploreBatteryThreshold()
-    if rawget(_G, "ModConfig") then
+    if AutoExplore["mod_config_check"] == nil then
+        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+    end
+    if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "BatteryThreshold")
     end
     return "60"
