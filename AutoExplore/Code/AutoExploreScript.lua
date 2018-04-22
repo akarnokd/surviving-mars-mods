@@ -26,23 +26,19 @@ AutoExplore.StringIdBase = 20187413
 
 -- determine if a rover is allowed to scan a specific anomaly type
 function AutoExploreCanScanAnomaly(anomaly, rover)
-    if IsKindOf(anomaly, "SubsurfaceAnomaly_breakthrough") 
-            and rover.auto_scan_breakthrough then
-        return true
+    if IsKindOf(anomaly, "SubsurfaceAnomaly_breakthrough") then
+        return rover.auto_scan_breakthrough
     end
-    if IsKindOf(anomaly, "SubsurfaceAnomaly_unlock") 
-            and rover.auto_scan_unlock then
-        return true
+    if IsKindOf(anomaly, "SubsurfaceAnomaly_unlock") then
+        return rover.auto_scan_unlock
     end
-    if IsKindOf(anomaly, "SubsurfaceAnomaly_complete") 
-            and rover.auto_scan_complete then
-        return true
+    if IsKindOf(anomaly, "SubsurfaceAnomaly_complete") then
+        return rover.auto_scan_complete
     end
     if (IsKindOf(anomaly, "SubsurfaceAnomaly_aliens") 
                 or anomaly.tech_action == "resources"
-                or not anomaly.tech_action)
-            and rover.auto_scan_aliens then
-        return true
+                or not anomaly.tech_action) then
+        return rover.auto_scan_aliens
     end
 
     return rover.auto_scan_custom
