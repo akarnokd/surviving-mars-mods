@@ -327,8 +327,8 @@ function OnMsg.ModConfigReady()
 
         
     ModConfig:RegisterOption("AutoHelpRover", "UpdatePeriod", {
-        name = T{AutoGatherTransport.StringIdBase + 18, "Update period"},
-        desc = T{AutoGatherTransport.StringIdBase + 19, "Time between trying to fix or recharge other rovers<newline>Pick a larger value if your colony has become large and you get lag."},
+        name = T{AutoHelpRover.StringIdBase + 18, "Update period"},
+        desc = T{AutoHelpRover.StringIdBase + 19, "Time between trying to fix or recharge other rovers<newline>Pick a larger value if your colony has become large and you get lag."},
         type = "enum",
         values = {
             {value = "1000", label = T{"1 s"}},
@@ -344,8 +344,8 @@ function OnMsg.ModConfigReady()
 
     
     ModConfig:RegisterOption("AutoHelpRover", "BatteryThreshold", {
-        name = T{AutoGatherTransport.StringIdBase + 20, "Battery threshold"},
-        desc = T{AutoGatherTransport.StringIdBase + 21, "Percentage of battery charge below which the rover will go recharge itself."},
+        name = T{AutoHelpRover.StringIdBase + 20, "Battery threshold"},
+        desc = T{AutoHelpRover.StringIdBase + 21, "Percentage of battery charge below which the rover will go recharge itself."},
         type = "enum",
         values = {
             {value = "10", label = T{"10%"}},
