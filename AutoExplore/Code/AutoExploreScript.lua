@@ -467,17 +467,17 @@ function AutoExploreAddInfoSection()
             "__context_of_kind", "ExplorerRover",
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Anomaly_Event.tga",
-            "Title", T{AutoExplore.StringIdBase + 34, "Scan Custom Anomalies"},
-            "RolloverText", T{AutoExplore.StringIdBase + 35, "Enable/Disable automatic scanning of custom anomalies by this rover.<newline><newline>(AutoExplore mod)"},
-            "RolloverTitle", T{AutoExplore.StringIdBase + 36, "Scan Custom Anomalies"},
+            "Title", T{AutoExplore.StringIdBase + 43, "Scan Custom Anomalies"},
+            "RolloverText", T{AutoExplore.StringIdBase + 44, "Enable/Disable automatic scanning of custom anomalies by this rover.<newline><newline>(AutoExplore mod)"},
+            "RolloverTitle", T{AutoExplore.StringIdBase + 45, "Scan Custom Anomalies"},
             "RolloverHint",  T{AutoExplore.StringIdBase + 9, "<left_click> Toggle setting"},
             "OnContextUpdate",
                 function(self, context)
                     if context.auto_scan_custom then
-                        self:SetTitle(T{AutoExplore.StringIdBase + 37, "Scan Custom Anomalies (ON)"})
+                        self:SetTitle(T{AutoExplore.StringIdBase + 46, "Scan Custom Anomalies (ON)"})
                         self:SetIcon("UI/Icons/Anomaly_Custom.tga")
                     else
-                        self:SetTitle(T{AutoExplore.StringIdBase + 38, "Scan Custom Anomalies (OFF)"})
+                        self:SetTitle(T{AutoExplore.StringIdBase + 47, "Scan Custom Anomalies (OFF)"})
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Custom_Off.tga")
                     end
                 end,
