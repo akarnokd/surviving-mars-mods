@@ -88,6 +88,9 @@ function AutoExploreHandleRovers()
         return
     end
 
+    -- should the logic try and work out paths via tunnels?
+    local tunnelHandling = AutoExploreTunnelHandling();
+
     -- cache all surface anomalies
     local anomalies = GetObjects { class = "SubsurfaceAnomaly" }
 
@@ -136,7 +139,7 @@ function AutoExploreHandleRovers()
                         -- check if the anomaly is in the same zone
                         local objZone = AutoExplorePathFinding:GetObjectZone(obj)
 
-                        if objZone == roverZone then
+                        if objZone == roverZone or not tunnelHandling then
                             if showNotifications == "all" then
                                 AddCustomOnScreenNotification(
                                     "AutoExploreAnomaly", 
@@ -208,7 +211,7 @@ function AutoExploreHandleRovers()
                         -- check if the cable is in the same zone
                         local objZone = AutoExplorePathFinding:GetObjectZone(obj)
                         -- yes, we can move there directly
-                        if objZone == roverZone then
+                        if objZone == roverZone or not tunnelHandling then
                             if showNotifications == "all" then
                                 AddCustomOnScreenNotification(
                                     "AutoExploreRecharge", 
@@ -530,6 +533,17 @@ function AutoExploreBatteryThreshold()
     return "60"
 end
 
+-- tunnel handling
+function AutoExploreTunnelHandling()
+    if AutoExplore["mod_config_check"] == nil then
+        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+    end
+    if AutoExplore.mod_config_check then
+        return ModConfig:Get("AutoExplore", "TunnelHandling")
+    end
+    return "off"
+end
+
 -- ModConfig signals "ModConfigReady" when it can be manipulated
 function OnMsg.ModConfigReady()
 
@@ -583,6 +597,17 @@ function OnMsg.ModConfigReady()
             {value = "95", label = T{"95%"}},
         },
         default = "60" 
+    })
+
+    ModConfig:RegisterOption("AutoExplore", "TunnelHandling", {
+        name = T{AutoExplore.StringIdBase + 48, "Tunnel handling"},
+        desc = T{AutoExplore.StringIdBase + 49, "Enable the custom tunnel handling logic."},
+        type = "enum",
+        values = {
+            {value = "on", label = T{AutoExplore.StringIdBase + 50, "On"}},
+            {value = "off", label = T{AutoExplore.StringIdBase + 18, "Off"}}
+        },
+        default = "off" 
     })
 
 end
