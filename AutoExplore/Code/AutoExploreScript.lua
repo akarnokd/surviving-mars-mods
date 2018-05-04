@@ -89,7 +89,7 @@ function AutoExploreHandleRovers()
     end
 
     -- should the logic try and work out paths via tunnels?
-    local tunnelHandling = AutoExploreTunnelHandling();
+    local tunnelHandling = AutoExploreTunnelHandling() == "on";
 
     -- cache all surface anomalies
     local anomalies = GetObjects { class = "SubsurfaceAnomaly" }
