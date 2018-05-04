@@ -59,6 +59,8 @@ function AutoGatherHandleTransports()
     if not mapdata.GameLogic then
         return
     end
+    -- should the logic try and work out paths via tunnels?
+    local tunnelHandling = AutoExploreTunnelHandling() == "on";
 
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
@@ -95,20 +97,20 @@ function AutoGatherHandleTransports()
 
                     -- if inventory is empty, search for a resource
                     if rover:GetStoredAmount() == 0 then
-                        AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
+                        AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunnelHandling)
                     else
-                        AutoGatherUnloadContent(rover, zonesReachable, roverZone)
+                        AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
                     end
                 else
-                    AutoGatherGoRecharge(rover, zonesReachable, roverZone)
+                    AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
                 end
             end
 
             if rover.command == "LoadingComplete" then
                 if rover.battery_current > rover.battery_max * 0.2 then
-                    AutoGatherUnloadContent(rover, zonesReachable, roverZone)
+                    AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
                 else
-                    AutoGatherGoRecharge(rover, zonesReachable, roverZone)
+                    AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
                 end
             end
         end
@@ -122,7 +124,7 @@ AutoGatherTransport.StringIdBase = 20182401
 
 -- Dedicated actions
 
-function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
+function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunnelHandling)
     local showNotifications = AutoGatherConfigShowNotification()
 
     local obj, distance = AutoGatherFindNearest(deposits,
@@ -136,7 +138,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
         -- check if the resource is in the same zone
         local objZone = AutoGatherPathFinding:GetObjectZone(obj)
 
-        if objZone == roverZone then
+        if objZone == roverZone or not tunnelHandling then
             if showNotifications == "all" then
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportGather", 
@@ -200,7 +202,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits)
     end
 end
 
-function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
+function AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
     local showNotifications = AutoGatherConfigShowNotification()
 
     -- if unload target set, dump there
@@ -236,7 +238,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
         -- check if the cable is in the same zone
         local objZone = AutoGatherPathFinding:GetObjectZone(obj)
         -- yes, we can move there directly
-        if objZone == roverZone then
+        if objZone == roverZone or not tunnelHandling then
             if showNotifications == "all" then
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportDump", 
@@ -309,7 +311,7 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone)
     end
 end
 
-function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
+function AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
     local showNotifications = AutoGatherConfigShowNotification()
 
     -- otherwise find the nearest power cable to recharge
@@ -327,7 +329,7 @@ function AutoGatherGoRecharge(rover, zonesReachable, roverZone)
         -- check if the cable is in the same zone
         local objZone = AutoGatherPathFinding:GetObjectZone(obj)
         -- yes, we can move there directly
-        if objZone == roverZone then
+        if objZone == roverZone or not tunnelHandling then
             if showNotifications == "all" then
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportRecharge", 
@@ -518,6 +520,18 @@ function AutoGatherBatteryThreshold()
     return "60"
 end
 
+
+-- tunnel handling
+function AutoExploreTunnelHandling()
+    if AutoExplore["mod_config_check"] == nil then
+        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+    end
+    if AutoExplore.mod_config_check then
+        return ModConfig:Get("AutoGatherTransport", "TunnelHandling")
+    end
+    return "off"
+end
+
 -- ModConfig signals "ModConfigReady" when it can be manipulated
 function OnMsg.ModConfigReady()
 
@@ -571,6 +585,17 @@ function OnMsg.ModConfigReady()
             {value = "95", label = T{"95%"}},
         },
         default = "60" 
+    })
+
+    ModConfig:RegisterOption("AutoGatherTransport", "TunnelHandling", {
+        name = T{AutoExplore.StringIdBase + 34, "Tunnel handling"},
+        desc = T{AutoExplore.StringIdBase + 35, "Enable the custom tunnel handling logic."},
+        type = "enum",
+        values = {
+            {value = "on", label = T{AutoExplore.StringIdBase + 36, "On"}},
+            {value = "off", label = T{AutoExplore.StringIdBase + 23, "Off"}}
+        },
+        default = "off" 
     })
 
 end
