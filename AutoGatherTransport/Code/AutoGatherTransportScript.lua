@@ -60,7 +60,7 @@ function AutoGatherHandleTransports()
         return
     end
     -- should the logic try and work out paths via tunnels?
-    local tunnelHandling = AutoExploreTunnelHandling() == "on";
+    local tunnelHandling = AutoGatherTunnelHandling() == "on";
 
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
@@ -522,11 +522,11 @@ end
 
 
 -- tunnel handling
-function AutoExploreTunnelHandling()
-    if AutoExplore["mod_config_check"] == nil then
-        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+function AutoGatherTunnelHandling()
+    if AutoGatherTransport["mod_config_check"] == nil then
+        AutoGatherTransport.mod_config_check = rawget(_G, "ModConfig") ~= nil
     end
-    if AutoExplore.mod_config_check then
+    if AutoGatherTransport.mod_config_check then
         return ModConfig:Get("AutoGatherTransport", "TunnelHandling")
     end
     return "off"
@@ -554,7 +554,7 @@ function OnMsg.ModConfigReady()
     
     ModConfig:RegisterOption("AutoGatherTransport", "UpdatePeriod", {
         name = T{AutoGatherTransport.StringIdBase + 24, "Update period"},
-        desc = T{AutoGatherTransport.StringIdBase + 25, "Time between trying to find and explore anomalies with rovers<newline>Pick a larger value if your colony has become large and you get lag."},
+        desc = T{AutoGatherTransport.StringIdBase + 25, "Time between trying to find and gather deposits with rovers<newline>Pick a larger value if your colony has become large and you get lag."},
         type = "enum",
         values = {
             {value = "1000", label = T{"1 s"}},
@@ -564,6 +564,9 @@ function OnMsg.ModConfigReady()
             {value = "3000", label = T{"3 s"}},
             {value = "5000", label = T{"5 s"}},
             {value = "10000", label = T{"10 s"}},
+            {value = "15000", label = T{"15 s"}},
+            {value = "20000", label = T{"20 s"}},
+            {value = "30000", label = T{"30 s"}},
         },
         default = "1000" 
     })
@@ -588,12 +591,12 @@ function OnMsg.ModConfigReady()
     })
 
     ModConfig:RegisterOption("AutoGatherTransport", "TunnelHandling", {
-        name = T{AutoExplore.StringIdBase + 34, "Tunnel handling"},
-        desc = T{AutoExplore.StringIdBase + 35, "Enable the custom tunnel handling logic."},
+        name = T{AutoGatherTransport.StringIdBase + 34, "Tunnel handling"},
+        desc = T{AutoGatherTransport.StringIdBase + 35, "Enable the custom tunnel handling logic."},
         type = "enum",
         values = {
-            {value = "on", label = T{AutoExplore.StringIdBase + 36, "On"}},
-            {value = "off", label = T{AutoExplore.StringIdBase + 23, "Off"}}
+            {value = "on", label = T{AutoGatherTransport.StringIdBase + 36, "On"}},
+            {value = "off", label = T{AutoGatherTransport.StringIdBase + 23, "Off"}}
         },
         default = "off" 
     })
