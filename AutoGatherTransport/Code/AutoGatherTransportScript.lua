@@ -8,9 +8,16 @@ end
 
 function AutoGatherInstallThread()
     AutoGatherPathFinding:BuildZones()
+    AutoGatherPathFinding.zonesBuilt = true;
 
     CreateGameTimeThread(function()
         while true do
+            -- detect script reload and rebuild the zones
+            if not AutoGatherPathFinding.zonesBuilt then
+                AutoGatherPathFinding:BuildZones()
+                AutoGatherPathFinding.zonesBuilt = true;
+            end
+
             AutoGatherHandleTransports()
             local period = AutoGatherConfigUpdatePeriod()
             Sleep(tonumber(period))
@@ -407,90 +414,87 @@ function OnMsg.ClassesBuilt()
 end
 
 function AutoGatherAddInfoSection()
-
-    if not table.find(XTemplates.ipRover[1], "UniqueId", "1342196777-1") then
-
-        table.insert(XTemplates.ipRover[1], 
-            PlaceObj("XTemplateTemplate", {
-                "__context_of_kind", "RCTransport",
-                "__template", "InfopanelActiveSection",
-                "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
-                "Title", T{AutoGatherTransport.StringIdBase + 11, "Auto Gather"},
-                "RolloverText", T{AutoGatherTransport.StringIdBase + 12, "Enable/Disable automatic gathering of surface deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
-                "RolloverTitle", T{AutoGatherTransport.StringIdBase + 13, "Auto Gather"},
-                "RolloverHint",  T{AutoGatherTransport.StringIdBase + 14, "<left_click> Toggle setting"},
-                "OnContextUpdate",
-                    function(self, context)
-                        if context.auto_gather then
-                            self:SetTitle(T{AutoGatherTransport.StringIdBase + 15, "Auto Gather (ON)"})
-                            self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
-                        else
-                            self:SetTitle(T{AutoGatherTransport.StringIdBase + 16, "Auto Gather (OFF)"})
-                            self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
-                        end
-                    end,
-                    "UniqueId","1342196777-1" -- Mod's steamid + "1"
-            }, {
-                PlaceObj("XTemplateFunc", {
-                    "name", "OnActivate(self, context)", 
-                    "parent", function(parent, context)
-                            return parent.parent
-                        end,
-                    "func", function(self, context)
-                            context.auto_gather = not context.auto_gather
-                            ObjModified(context)
-                        end
-                })
-            })
-        )
-
+    -- if the templates have been added, don't add them again
+    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
+    if table.find(XTemplates.ipRover[1], "UniqueId", "AutoGatherTransport-1") then
+        return
     end
 
-        -- current mod location, strip off the Code/AutoGatherTransportScript.lua from the end
-    local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
-
-    if not table.find(XTemplates.ipRover[1], "UniqueId", "1342196777-2") then
-
-        table.insert(XTemplates.ipRover[1], 
+    table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
             "__context_of_kind", "RCTransport",
             "__template", "InfopanelActiveSection",
-            "Icon", this_mod_dir.."UI/unload_at_nearest.tga",
-            "Title", T{AutoGatherTransport.StringIdBase + 28, "Auto unload at"},
-            "RolloverText", T{AutoGatherTransport.StringIdBase + 29, "Click and select the screen center location to unload to, click again to clear the unload location"},
-            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 30, "Auto unload at"},
-            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 31, "<left_click> Select screen center as the unload location or clear previous location"},
+            "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
+            "Title", T{AutoGatherTransport.StringIdBase + 11, "Auto Gather"},
+            "RolloverText", T{AutoGatherTransport.StringIdBase + 12, "Enable/Disable automatic gathering of surface deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
+            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 13, "Auto Gather"},
+            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 14, "<left_click> Toggle setting"},
             "OnContextUpdate",
                 function(self, context)
-                    local coord = context.auto_unload_at
-                    if coord then
-                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 32, "Auto unload at: "..(coord:x())..", "..(coord:y()) })
-                        self:SetIcon(this_mod_dir.."UI/unload_at.tga")
+                    if context.auto_gather then
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 15, "Auto Gather (ON)"})
+                        self:SetIcon("UI/Icons/Upgrades/factory_ai_02.tga")
                     else
-                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 33, "Auto unload at: nearest"})
-                        self:SetIcon(this_mod_dir.."UI/unload_at_nearest.tga")
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 16, "Auto Gather (OFF)"})
+                        self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
                     end
                 end,
-                "UniqueId","1342196777-2" -- Mod's steamid + "2"
-            }, {
+                "UniqueId", "AutoGatherTransport-1"
+        }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
                 "parent", function(parent, context)
                         return parent.parent
                     end,
                 "func", function(self, context)
-                        if context.auto_unload_at then
-                            context["auto_unload_at"] = nil
-                        else
-                            context.auto_unload_at = GetTerrainCursorXY(UIL.GetScreenSize()/2)
-                        end
+                        context.auto_gather = not context.auto_gather
                         ObjModified(context)
                     end
-                })
             })
-        )
-    end
+        })
+    )
 
+    -- current mod location, strip off the Code/AutoGatherTransportScript.lua from the end
+    local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
+
+    table.insert(XTemplates.ipRover[1], 
+    PlaceObj("XTemplateTemplate", {
+        "__context_of_kind", "RCTransport",
+        "__template", "InfopanelActiveSection",
+        "Icon", this_mod_dir.."UI/unload_at_nearest.tga",
+        "Title", T{AutoGatherTransport.StringIdBase + 28, "Auto unload at"},
+        "RolloverText", T{AutoGatherTransport.StringIdBase + 29, "Click and select the screen center location to unload to, click again to clear the unload location"},
+        "RolloverTitle", T{AutoGatherTransport.StringIdBase + 30, "Auto unload at"},
+        "RolloverHint",  T{AutoGatherTransport.StringIdBase + 31, "<left_click> Select screen center as the unload location or clear previous location"},
+        "OnContextUpdate",
+            function(self, context)
+                local coord = context.auto_unload_at
+                if coord then
+                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 32, "Auto unload at: "..(coord:x())..", "..(coord:y()) })
+                    self:SetIcon(this_mod_dir.."UI/unload_at.tga")
+                else
+                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 33, "Auto unload at: nearest"})
+                    self:SetIcon(this_mod_dir.."UI/unload_at_nearest.tga")
+                end
+            end,
+            "UniqueId","AutoGatherTransport-2" -- Mod's steamid + "2"
+        }, {
+        PlaceObj("XTemplateFunc", {
+            "name", "OnActivate(self, context)", 
+            "parent", function(parent, context)
+                    return parent.parent
+                end,
+            "func", function(self, context)
+                    if context.auto_unload_at then
+                        context["auto_unload_at"] = nil
+                    else
+                        context.auto_unload_at = GetTerrainCursorXY(UIL.GetScreenSize()/2)
+                    end
+                    ObjModified(context)
+                end
+            })
+        })
+    )
 end
 
 -- Setup ModConfig UI

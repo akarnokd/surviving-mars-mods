@@ -10,6 +10,9 @@ AutoExplorePathFinding = {
     -- how many zones were found
     zoneCount = 0,
 
+    -- zones have been built
+    zonesBuilt = false,
+
     -- returns the zone index of a world location point()
     -- or nil if it is not a passable location
     GetPointZone = function(self, worldPoint)

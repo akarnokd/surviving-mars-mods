@@ -9,9 +9,16 @@ end
 function AutoExploreInstallThread()
     -- PostNewMapLoaded seems to be too early?
     AutoExplorePathFinding:BuildZones()
+    AutoExplorePathFinding.zonesBuilt = true;
 
     CreateGameTimeThread(function()
         while true do
+            -- detect script reload and rebuild the zones
+            if not AutoExplorePathFinding.zonesBuilt then
+                AutoExplorePathFinding:BuildZones()
+                AutoExplorePathFinding.zonesBuilt = true;
+            end
+
             AutoExploreHandleRovers() 
             local period = AutoExploreConfigUpdatePeriod()
             Sleep(tonumber(period))
@@ -291,6 +298,12 @@ function OnMsg.ClassesBuilt()
 end
 
 function AutoExploreAddInfoSection()
+    -- if the templates have been added, don't add them again
+    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
+    if table.find(XTemplates.ipRover[1], "UniqueId", "AutoExplore-1") then
+        return
+    end
+
     -- enable/disable auto explore
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
@@ -311,6 +324,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-1"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
@@ -348,6 +362,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Breakthrough_Off.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-2"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
@@ -382,6 +397,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Tech_Off.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-3"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
@@ -416,6 +432,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Research_Off.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-4"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
@@ -450,6 +467,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Event_Off.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-5"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
@@ -484,6 +502,7 @@ function AutoExploreAddInfoSection()
                         self:SetIcon(this_mod_dir.."UI/Anomaly_Custom_Off.tga")
                     end
                 end,
+            "UniqueId", "AutoExplore-1"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 

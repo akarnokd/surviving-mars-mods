@@ -5,11 +5,11 @@ return PlaceObj('ModDef', {
 	'id', "Zq7BVyy",
 	'steam_id', "1342196777",
 	'author', "akarnokd",
-	'version', 35,
+	'version', 36,
 	'lua_revision', 229422,
 	'code', {
 		"Code/AutoGatherTransportScript.lua",
 		"Code/AutoPathFinding.lua",
 	},
-	'saved', 1525516291,
+	'saved', 1525710057,
 })
