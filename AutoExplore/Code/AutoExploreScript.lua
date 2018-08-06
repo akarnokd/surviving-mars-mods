@@ -340,7 +340,8 @@ function AutoExploreAddInfoSection()
     )
 
     -- current mod location, strip off the Code/AutoExploreScript.lua from the end
-    local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -27)
+    --local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -27)
+    local this_mod_dir = Mods["Gfsiaes"].path
 
     -- enable/disable breakthrough anomalies
     table.insert(XTemplates.ipRover[1], 

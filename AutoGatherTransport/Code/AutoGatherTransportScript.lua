@@ -455,7 +455,9 @@ function AutoGatherAddInfoSection()
     )
 
     -- current mod location, strip off the Code/AutoGatherTransportScript.lua from the end
-    local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
+
+    --local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
+    local this_mod_dir = Mods["Zq7BVyy"].path
 
     table.insert(XTemplates.ipRover[1], 
     PlaceObj("XTemplateTemplate", {
@@ -470,7 +472,7 @@ function AutoGatherAddInfoSection()
             function(self, context)
                 local coord = context.auto_unload_at
                 if coord then
-                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 32, "Auto unload at: "..(coord:x())..", "..(coord:y()) })
+                    self:SetTitle(T{AutoGatherTransport.StringIdBase + 32, "Auto unload at: " }..(coord:x())..", "..(coord:y()))
                     self:SetIcon(this_mod_dir.."UI/unload_at.tga")
                 else
                     self:SetTitle(T{AutoGatherTransport.StringIdBase + 33, "Auto unload at: nearest"})

@@ -7,7 +7,7 @@ return PlaceObj('ModDef', {
 	'steam_id', "1343678828",
 	'author', "akarnokd",
 	'version', 10,
-	'lua_revision', 228184,
+	'lua_revision', 233467,
 	'code', {
 		"Code/AutoDemolishConcreteExtractor.lua",
 	},
