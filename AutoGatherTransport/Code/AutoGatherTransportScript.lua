@@ -503,7 +503,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoGatherConfigShowNotification()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoGatherTransport", "Notifications")
     end
     return "all"
@@ -512,7 +513,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoGatherConfigUpdatePeriod()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoGatherTransport", "UpdatePeriod")
     end
     return "1000"
@@ -520,7 +522,8 @@ end
 
 -- Battery threshold
 function AutoGatherBatteryThreshold()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoGatherTransport", "BatteryThreshold")
     end
     return "60"
@@ -530,7 +533,8 @@ end
 -- tunnel handling
 function AutoGatherTunnelHandling()
     if AutoGatherTransport["mod_config_check"] == nil then
-        AutoGatherTransport.mod_config_check = rawget(_G, "ModConfig") ~= nil
+        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        AutoGatherTransport.mod_config_check = g_ModConfigLoaded
     end
     if AutoGatherTransport.mod_config_check then
         return ModConfig:Get("AutoGatherTransport", "TunnelHandling")

@@ -282,7 +282,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoHelpConfigShowNotification()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoHelpRover", "Notifications")
     end
     return "all"
@@ -290,7 +291,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoHelpConfigUpdatePeriod()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoHelpRover", "UpdatePeriod")
     end
     return "1500"
@@ -298,7 +300,8 @@ end
 
 -- Battery threshold
 function AutoHelpBatteryThreshold()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoHelpRover", "BatteryThreshold")
     end
     return "90"

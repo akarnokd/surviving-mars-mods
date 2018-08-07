@@ -523,7 +523,8 @@ end
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigShowNotification()
     if AutoExplore["mod_config_check"] == nil then
-        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        AutoExplore.mod_config_check = g_ModConfigLoaded
     end
     if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "Notifications")
@@ -534,7 +535,8 @@ end
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigUpdatePeriod()
     if AutoExplore["mod_config_check"] == nil then
-        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        AutoExplore.mod_config_check = g_ModConfigLoaded
     end
     if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "UpdatePeriod")
@@ -545,7 +547,8 @@ end
 -- Battery threshold
 function AutoExploreBatteryThreshold()
     if AutoExplore["mod_config_check"] == nil then
-        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        AutoExplore.mod_config_check = g_ModConfigLoaded
     end
     if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "BatteryThreshold")
@@ -556,7 +559,8 @@ end
 -- tunnel handling
 function AutoExploreTunnelHandling()
     if AutoExplore["mod_config_check"] == nil then
-        AutoExplore.mod_config_check = rawget(_G, "ModConfig") ~= nil
+        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        AutoExplore.mod_config_check = g_ModConfigLoaded
     end
     if AutoExplore.mod_config_check then
         return ModConfig:Get("AutoExplore", "TunnelHandling")
@@ -597,7 +601,7 @@ function OnMsg.ModConfigReady()
             {value = "5000", label = T{"5 s"}},
             {value = "10000", label = T{"10 s"}},
         },
-        default = "100" 
+        default = "1000" 
     })
 
     ModConfig:RegisterOption("AutoExplore", "BatteryThreshold", {

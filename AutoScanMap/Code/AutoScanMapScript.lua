@@ -103,7 +103,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoScanMapConfigMode()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoScanMap", "Mode")
     end
     return "all"

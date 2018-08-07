@@ -125,7 +125,8 @@ end
 -- ==========================================================================
 -- See if ModConfig is installed and that notifications are enabled
 function AutoShuttleConstructionConfigShowNotification()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoShuttleConstruction", "Notifications")
     end
     return "all"
@@ -133,7 +134,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoShuttleConstructionConfigThreshold()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoShuttleConstruction", "Threshold")
     end
     return "5"

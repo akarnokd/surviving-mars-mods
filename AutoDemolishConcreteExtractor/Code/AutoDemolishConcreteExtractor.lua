@@ -76,7 +76,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoDemolishConcreteExtractorShowNotification()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoDemolishConcreteExtractor", "Notifications")
     end
     return "all"
@@ -84,7 +85,8 @@ end
 
 -- See if ModConfig is installed operations are enabled
 function AutoDemolishConcreteExtractorEnabledAction()
-    if rawget(_G, "ModConfig") then
+    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+    if g_ModConfigLoaded then
         return ModConfig:Get("AutoDemolishConcreteExtractor", "Action")
     end
     return "all"
