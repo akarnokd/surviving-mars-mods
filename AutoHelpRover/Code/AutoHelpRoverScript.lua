@@ -245,6 +245,12 @@ function OnMsg.ClassesBuilt()
 end
 
 function AutoHelpAddInfoSection()
+    -- if the templates have been added, don't add them again
+    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
+    if table.find(XTemplates.ipRover[1], "UniqueId", "AutoHelpRover-1") then
+        return
+    end
+
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
             "__context_of_kind", "RCRover",
@@ -264,6 +270,7 @@ function AutoHelpAddInfoSection()
                         self:SetIcon("UI/Icons/Upgrades/factory_ai_01.tga")
                     end
                 end,
+            "UniqueId", "AutoHelpRover-1"
         }, {
             PlaceObj("XTemplateFunc", {
                 "name", "OnActivate(self, context)", 
