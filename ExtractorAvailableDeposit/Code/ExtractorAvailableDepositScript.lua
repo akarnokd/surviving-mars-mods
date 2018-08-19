@@ -24,9 +24,16 @@ end
 
 -- installs a new text section in the Mine->Production Infopanel section
 function ExtractorAvailableDepositAddInfoSection()
+    -- if the templates have been added, don't add them again
+    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
+    if table.find(XTemplates.sectionMine[1], "UniqueId", "ExtractorAvailableDeposit-1") then
+        return
+    end
+
     table.insert(XTemplates.sectionMine[1], 
         PlaceObj("XTemplateTemplate", {
             "__template", "InfopanelText", 
+            "UniqueId", "ExtractorAvailableDeposit-1",
             "Text", T{"<ExtractorAvailableDepositInfo>"}
         })
     )
