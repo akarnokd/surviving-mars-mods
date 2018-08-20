@@ -72,21 +72,24 @@ AutoExplorePathFinding = {
                 local startZone = self:GetPointZone(start_point)
                 local endZone = self:GetPointZone(exit_point)
                 
-                -- prepare the source zone index
-                if not reachableZones[startZone] then
-                    -- entries are list of end zones
-                    reachableZones[startZone] = { }
-                end
-                -- append the reachable zone
-                table.insert(reachableZones[startZone], endZone)
+                -- some locations don't get zone info for some reason, ignore them
+                if startZone ~= nil and endZone ~= nil then
+                    -- prepare the source zone index
+                    if not reachableZones[startZone] then
+                        -- entries are list of end zones
+                        reachableZones[startZone] = { }
+                    end
+                    -- append the reachable zone
+                    table.insert(reachableZones[startZone], endZone)
 
-                -- prepare the end zone index
-                if not reachableZones[endZone] then
-                    -- entries are list of end zones
-                    reachableZones[endZone] = { }
+                    -- prepare the end zone index
+                    if not reachableZones[endZone] then
+                        -- entries are list of end zones
+                        reachableZones[endZone] = { }
+                    end
+                    -- append the reachable zone
+                    table.insert(reachableZones[endZone], startZone)
                 end
-                -- append the reachable zone
-                table.insert(reachableZones[endZone], startZone)
             end 
         }
 
