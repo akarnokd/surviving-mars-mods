@@ -13,6 +13,9 @@ AutoGatherPathFinding = {
     -- zones have been built
     zonesBuilt = false,
 
+    -- indicates an in-game map was loaded
+    ingameMap = false,
+
     -- returns the zone index of a world location point()
     -- or nil if it is not a passable location
     GetPointZone = function(self, worldPoint)

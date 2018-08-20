@@ -6,14 +6,23 @@ function OnMsg.LoadGame()
     AutoGatherInstallThread()
 end
 
+function OnMsg.ChangeMapDone(map)
+    if map == "PreGame" then
+        return 
+    end
+    AutoGatherPathFinding.ingameMap = true
+end
+
 function AutoGatherInstallThread()
-    AutoGatherPathFinding:BuildZones()
-    AutoGatherPathFinding.zonesBuilt = true;
+    if AutoGatherPathFinding.ingameMap then
+        AutoGatherPathFinding:BuildZones()
+        AutoGatherPathFinding.zonesBuilt = true;
+    end
 
     CreateGameTimeThread(function()
         while true do
             -- detect script reload and rebuild the zones
-            if not AutoGatherPathFinding.zonesBuilt then
+            if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt then
                 AutoGatherPathFinding:BuildZones()
                 AutoGatherPathFinding.zonesBuilt = true;
             end

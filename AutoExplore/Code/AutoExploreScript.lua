@@ -6,15 +6,24 @@ function OnMsg.LoadGame()
     AutoExploreInstallThread()
 end
 
+function OnMsg.ChangeMapDone(map)
+    if map == "PreGame" then
+        return 
+    end
+    AutoExplorePathFinding.ingameMap = true
+end
+
 function AutoExploreInstallThread()
-    -- PostNewMapLoaded seems to be too early?
-    AutoExplorePathFinding:BuildZones()
-    AutoExplorePathFinding.zonesBuilt = true;
+    if AutoExplorePathFinding.ingameMap then
+        -- PostNewMapLoaded seems to be too early?
+        AutoExplorePathFinding:BuildZones()
+        AutoExplorePathFinding.zonesBuilt = true;
+    end
 
     CreateGameTimeThread(function()
         while true do
             -- detect script reload and rebuild the zones
-            if not AutoExplorePathFinding.zonesBuilt then
+            if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt then
                 AutoExplorePathFinding:BuildZones()
                 AutoExplorePathFinding.zonesBuilt = true;
             end
