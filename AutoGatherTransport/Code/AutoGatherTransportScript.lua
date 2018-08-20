@@ -510,45 +510,49 @@ end
 
 -- Setup ModConfig UI
 
--- See if ModConfig is installed and that notifications are enabled
-function AutoGatherConfigShowNotification()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
-        return ModConfig:Get("AutoGatherTransport", "Notifications")
-    end
-    return "all"
-end
-
-
--- See if ModConfig is installed and that notifications are enabled
-function AutoGatherConfigUpdatePeriod()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
-        return ModConfig:Get("AutoGatherTransport", "UpdatePeriod")
-    end
-    return "1000"
-end
-
--- Battery threshold
-function AutoGatherBatteryThreshold()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
-        return ModConfig:Get("AutoGatherTransport", "BatteryThreshold")
-    end
-    return "60"
-end
-
-
--- tunnel handling
-function AutoGatherTunnelHandling()
+-- Check if the ModConfig mod has been loaded and is ready -> returns true
+function AutoGatherModConfigAvailable()
     if AutoGatherTransport["mod_config_check"] == nil then
         local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
         AutoGatherTransport.mod_config_check = g_ModConfigLoaded
     end
     if AutoGatherTransport.mod_config_check then
-        return ModConfig:Get("AutoGatherTransport", "TunnelHandling")
+        if ModConfig:IsReady() then
+            return true
+        end
     end
-    return "off"
+    return false
+end
+
+-- Read a specific configuration setting or return the default value
+function AutoGatherGetConfig(configName, defaultValue)
+    if AutoGatherModConfigAvailable() then
+        local v = ModConfig:Get("AutoGatherTransport", configName)
+        if v ~= nil then
+            return v
+        end
+    end
+    return defaultValue
+end
+
+-- See if ModConfig is installed and that notifications are enabled
+function AutoGatherConfigShowNotification()
+    return AutoGatherGetConfig("Notifications", "all")
+end
+
+-- See if ModConfig is installed and that notifications are enabled
+function AutoGatherConfigUpdatePeriod()
+    return AutoGatherGetConfig("UpdatePeriod", "1000")
+end
+
+-- Battery threshold
+function AutoGatherBatteryThreshold()
+    return AutoGatherGetConfig("BatteryThreshold", "60")
+end
+
+-- tunnel handling
+function AutoGatherTunnelHandling()
+    return AutoGatherGetConfig("TunnelHandling", "off")
 end
 
 -- ModConfig signals "ModConfigReady" when it can be manipulated
