@@ -80,8 +80,6 @@ function AutoGatherHandleTransports()
 
     -- first collect up all the zones which have tunnel entrances/exits
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
-    -- percentage of remaining battery to trigger recharge
-    local threshold = tonumber(AutoGatherBatteryThreshold())
 
     local deposits = GetObjects { 
         classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup" 
@@ -109,25 +107,16 @@ function AutoGatherHandleTransports()
 
             -- Idle transporters only
             if rover.command == "Idle" then
-                if rover.battery_current > rover.battery_max * threshold / 100.0 then
-
                     -- if inventory is empty, search for a resource
                     if rover:GetStoredAmount() == 0 then
                         AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunnelHandling)
                     else
                         AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
                     end
-                else
-                    AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
-                end
             end
 
             if rover.command == "LoadingComplete" then
-                if rover.battery_current > rover.battery_max * 0.2 then
-                    AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
-                else
-                    AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
-                end
+                AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandling)
             end
         end
     end)
@@ -327,94 +316,6 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandlin
     end
 end
 
-function AutoGatherGoRecharge(rover, zonesReachable, roverZone, tunnelHandling)
-    local showNotifications = AutoGatherConfigShowNotification()
-
-    -- otherwise find the nearest power cable to recharge
-    local obj, distance = FindNearest ({ class = "ElectricityGridElement",
-        filter = function(o, rz)
-            -- if not under construction
-            if not IsKindOf(o, "ConstructionSite") then
-                return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)                            
-            end
-            return false
-        end
-    }, rover, roverZone)
-
-    if obj then
-        -- check if the cable is in the same zone
-        local objZone = AutoGatherPathFinding:GetObjectZone(obj)
-        -- yes, we can move there directly
-        if objZone == roverZone or not tunnelHandling then
-            if showNotifications == "all" then
-                AddCustomOnScreenNotification(
-                    "AutoGatherTransportRecharge", 
-                    T{rover.name}, 
-                    T{AutoGatherTransport.StringIdBase + 7, "Going to recharge"}, 
-                    "UI/Icons/Notifications/research_2.tga",
-                    false,
-                    {
-                        expiration = 15000
-                    }
-                )
-            end
-            rover:InteractWithObject(obj, "recharge")
-        else
-            -- no, it is in another zone which is known to be reachable
-            -- unfortunately, the GoTo is likely unable to find a
-            -- route to it directly and will end up driving against the cliff
-            -- therefore, let's find a path to its zone through the
-            -- tunnel network and go one zone at a time
-            local next = AutoGatherPathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
-
-            -- we found it, let's move towards
-            if next then
-                if showNotifications == "all" then
-                    -- notify about it
-                    AddCustomOnScreenNotification(
-                        "GatherTransportRecharge", 
-                        T{rover.name}, 
-                        T{AutoGatherTransport.StringIdBase + 8, "Going to recharge (via Tunnel)"}, 
-                        "UI/Icons/Notifications/research_2.tga",
-                        false,
-                        {
-                            expiration = 15000
-                        }
-                    )
-                end
-                -- this will use the tunnel, after that, the idle state will trigger again
-                rover:InteractWithObject(next, "move")
-            else
-                -- there is no path to destination at the moment, report it as an error
-                if showNotifications == "all" or showNotifications == "problems" then
-                    AddCustomOnScreenNotification(
-                        "GatherTransportNoTunnel", 
-                        T{rover.name}, 
-                        T{AutoGatherTransport.StringIdBase + 9, "Unable to find a working tunnel to the recharge spot"}, 
-                        "UI/Icons/Notifications/research_2.tga",
-                        false,
-                        {
-                            expiration = 15000
-                        }
-                    )
-                end
-            end
-        end
-    else
-        if showNotifications == "all" or showNotifications == "problems" then
-            AddCustomOnScreenNotification(
-                "GatherTransportNoRecharge", 
-                T{rover.name}, 
-                T{AutoGatherTransport.StringIdBase + 10, "Unable to find a recharge spot"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
-        end
-    end
-end
 
 -- Setup UI
 
@@ -545,11 +446,6 @@ function AutoGatherConfigUpdatePeriod()
     return AutoGatherGetConfig("UpdatePeriod", "1000")
 end
 
--- Battery threshold
-function AutoGatherBatteryThreshold()
-    return AutoGatherGetConfig("BatteryThreshold", "60")
-end
-
 -- tunnel handling
 function AutoGatherTunnelHandling()
     return AutoGatherGetConfig("TunnelHandling", "off")
@@ -592,25 +488,6 @@ function OnMsg.ModConfigReady()
             {value = "30000", label = T{"30 s"}},
         },
         default = "1000" 
-    })
-
-    ModConfig:RegisterOption("AutoGatherTransport", "BatteryThreshold", {
-        name = T{AutoGatherTransport.StringIdBase + 26, "Battery threshold"},
-        desc = T{AutoGatherTransport.StringIdBase + 27, "Percentage of battery charge below which the rover will go recharge itself."},
-        type = "enum",
-        values = {
-            {value = "10", label = T{"10%"}},
-            {value = "20", label = T{"20%"}},
-            {value = "30", label = T{"30%"}},
-            {value = "40", label = T{"40%"}},
-            {value = "50", label = T{"50%"}},
-            {value = "60", label = T{"60%"}},
-            {value = "70", label = T{"70%"}},
-            {value = "80", label = T{"80%"}},
-            {value = "90", label = T{"90%"}},
-            {value = "95", label = T{"95%"}},
-        },
-        default = "60" 
     })
 
     ModConfig:RegisterOption("AutoGatherTransport", "TunnelHandling", {

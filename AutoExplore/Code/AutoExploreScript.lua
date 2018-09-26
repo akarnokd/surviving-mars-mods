@@ -115,9 +115,6 @@ function AutoExploreHandleRovers()
 
     local showNotifications = AutoExploreConfigShowNotification()
 
-    -- percentage of remaining battery to trigger recharge
-    local threshold = tonumber(AutoExploreBatteryThreshold())
-
     ForEach { class = "ExplorerRover", exec = function(rover)
         -- initialize scan filter to true if necessary
         AutoExploreInitRover(rover)
@@ -130,164 +127,35 @@ function AutoExploreHandleRovers()
 
                 local roverZone = AutoExplorePathFinding:GetObjectZone(rover) or 0
 
-                -- make sure there is plenty of battery to start with
-                if rover.battery_current > rover.battery_max * threshold / 100.0 then
-                    local obj, distance = AutoExploreFindNearest(anomalies, 
-                        function(o)
-                            -- check if the specific anomaly type is enabled for scanning on this rover
-                            if not AutoExploreCanScanAnomaly(o, rover) then
-                                return false
-                            end
-
-                            -- exclude anomalies already targeted by a rover
-                            local can_target = (not o.rover_assigned 
-                                or o.rover_assigned == rover
-                                or o.rover_assigned.command == "Malfunction"
-                                or o.rover_assigned.command == "Dead"
-                                or not o.rover_assigned.auto_explore);
-
-                            -- use the pathfinding helper to see if the anomaly is reachable
-                            return can_target and AutoExplorePathFinding:CanReachObject(zonesReachable, roverZone, o)
-                        end
-                    , rover)
-
-                    if obj then
-                        -- check if the anomaly is in the same zone
-                        local objZone = AutoExplorePathFinding:GetObjectZone(obj)
-
-                        if objZone == roverZone or not tunnelHandling then
-                            if showNotifications == "all" then
-                                AddCustomOnScreenNotification(
-                                    "AutoExploreAnomaly", 
-                                    T{rover.name}, 
-                                    T{AutoExplore.StringIdBase, "Started exploring an anomaly"}, 
-                                    "UI/Icons/Notifications/research_2.tga",
-                                    false,
-                                    {
-                                        expiration = 15000
-                                    }
-                                )
-                            end
-                            obj.rover_assigned = rover
-                            -- rover:Analyze(obj) doesn't work properly
-                            rover:InteractWithObject(obj, "analyze")
-                        else
-                            -- It is not in the same zone. Unfortunately, the "move" command behind "analyze" may
-                            -- not use a tunnel if available, we have to manually travel
-                            -- the chain of tunnels to get to the same zone
-                            local next = AutoExplorePathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
-
-                            -- we found it, let's move towards it
-                            if next then
-                                if showNotifications == "all" then
-                                    -- notify about it
-                                    AddCustomOnScreenNotification(
-                                        "AutoExploreAnomaly", 
-                                        T{rover.name}, 
-                                        T{AutoExplore.StringIdBase + 1, "Started exploring an anomaly (via Tunnel)"}, 
-                                        "UI/Icons/Notifications/research_2.tga",
-                                        false,
-                                        {
-                                            expiration = 15000
-                                        }
-                                    )
-                                end
-                                -- this will use the tunnel, after that, the idle state will trigger again
-                                rover:InteractWithObject(next, "move")
-                            else
-                                -- there is no path to destination at the moment, report it as an error
-                                if showNotifications == "all" or showNotifications == "problems" then
-                                    AddCustomOnScreenNotification(
-                                        "AutoExploreNoTunnel", 
-                                        T{rover.name}, 
-                                        T{AutoExplore.StringIdBase + 2, "Unable to find a working tunnel leading to the anomaly"}, 
-                                        "UI/Icons/Notifications/research_2.tga",
-                                        false,
-                                        {
-                                            expiration = 15000
-                                        }
-                                    )
-                                end
-                            end
-                        end
-                    end                    
-                else
-                    -- otherwise find the nearest power cable to recharge
-                    local obj, distance = FindNearest ({ class = "ElectricityGridElement",
-                        filter = function(o, rz)
-                            -- if not under construction
-                            if not IsKindOf(o, "ConstructionSite") then
-                                return AutoExplorePathFinding:CanReachObject(zonesReachable, rz, o)                            
-                            end
+                local obj, distance = AutoExploreFindNearest(anomalies, 
+                    function(o)
+                        -- check if the specific anomaly type is enabled for scanning on this rover
+                        if not AutoExploreCanScanAnomaly(o, rover) then
                             return false
                         end
-                    }, rover, roverZone)
 
-                    if obj then
-                        -- check if the cable is in the same zone
-                        local objZone = AutoExplorePathFinding:GetObjectZone(obj)
-                        -- yes, we can move there directly
-                        if objZone == roverZone or not tunnelHandling then
-                            if showNotifications == "all" then
-                                AddCustomOnScreenNotification(
-                                    "AutoExploreRecharge", 
-                                    T{rover.name}, 
-                                    T{AutoExplore.StringIdBase + 3, "Going to recharge"}, 
-                                    "UI/Icons/Notifications/research_2.tga",
-                                    false,
-                                    {
-                                        expiration = 15000
-                                    }
-                                )
-                            end
-                            rover:InteractWithObject(obj, "recharge")
-                        else
-                            -- no, it is in another zone which is known to be reachable
-                            -- unfortunately, the GoTo is likely unable to find a
-                            -- route to it directly and will end up driving against the cliff
-                            -- therefore, let's find a path to its zone through the
-                            -- tunnel network and go one zone at a time
-                            local next = AutoExplorePathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+                        -- exclude anomalies already targeted by a rover
+                        local can_target = (not o.rover_assigned 
+                            or o.rover_assigned == rover
+                            or o.rover_assigned.command == "Malfunction"
+                            or o.rover_assigned.command == "Dead"
+                            or not o.rover_assigned.auto_explore);
 
-                            -- we found it, let's move towards
-                            if next then
-                                if showNotifications == "all" then
-                                    -- notify about it
-                                    AddCustomOnScreenNotification(
-                                        "AutoExploreRecharge", 
-                                        T{rover.name}, 
-                                        T{AutoExplore.StringIdBase + 4, "Going to recharge (via Tunnel)"}, 
-                                        "UI/Icons/Notifications/research_2.tga",
-                                        false,
-                                        {
-                                            expiration = 15000
-                                        }
-                                    )
-                                end
-                                -- this will use the tunnel, after that, the idle state will trigger again
-                                rover:InteractWithObject(next, "move")
-                            else
-                                -- there is no path to destination at the moment, report it as an error
-                                if showNotifications == "all" or showNotifications == "problems" then
-                                    AddCustomOnScreenNotification(
-                                        "AutoExploreNoTunnel", 
-                                        T{rover.name}, 
-                                        T{AutoExplore.StringIdBase + 5, "Unable to find a working tunnel to the recharge spot"}, 
-                                        "UI/Icons/Notifications/research_2.tga",
-                                        false,
-                                        {
-                                            expiration = 15000
-                                        }
-                                    )
-                                end
-                            end
-                        end
-                    else
-                        if showNotifications == "all" or showNotifications == "problems" then
+                        -- use the pathfinding helper to see if the anomaly is reachable
+                        return can_target and AutoExplorePathFinding:CanReachObject(zonesReachable, roverZone, o)
+                    end
+                , rover)
+
+                if obj then
+                    -- check if the anomaly is in the same zone
+                    local objZone = AutoExplorePathFinding:GetObjectZone(obj)
+
+                    if objZone == roverZone or not tunnelHandling then
+                        if showNotifications == "all" then
                             AddCustomOnScreenNotification(
-                                "AutoExploreNoRecharge", 
+                                "AutoExploreAnomaly", 
                                 T{rover.name}, 
-                                T{AutoExplore.StringIdBase + 6, "Unable to find a recharge spot"}, 
+                                T{AutoExplore.StringIdBase, "Started exploring an anomaly"}, 
                                 "UI/Icons/Notifications/research_2.tga",
                                 false,
                                 {
@@ -295,8 +163,49 @@ function AutoExploreHandleRovers()
                                 }
                             )
                         end
+                        obj.rover_assigned = rover
+                        -- rover:Analyze(obj) doesn't work properly
+                        rover:InteractWithObject(obj, "analyze")
+                    else
+                        -- It is not in the same zone. Unfortunately, the "move" command behind "analyze" may
+                        -- not use a tunnel if available, we have to manually travel
+                        -- the chain of tunnels to get to the same zone
+                        local next = AutoExplorePathFinding:GetNextTunnelTowards(zonesReachable, roverZone, objZone)
+
+                        -- we found it, let's move towards it
+                        if next then
+                            if showNotifications == "all" then
+                                -- notify about it
+                                AddCustomOnScreenNotification(
+                                    "AutoExploreAnomaly", 
+                                    T{rover.name}, 
+                                    T{AutoExplore.StringIdBase + 1, "Started exploring an anomaly (via Tunnel)"}, 
+                                    "UI/Icons/Notifications/research_2.tga",
+                                    false,
+                                    {
+                                        expiration = 15000
+                                    }
+                                )
+                            end
+                            -- this will use the tunnel, after that, the idle state will trigger again
+                            rover:InteractWithObject(next, "move")
+                        else
+                            -- there is no path to destination at the moment, report it as an error
+                            if showNotifications == "all" or showNotifications == "problems" then
+                                AddCustomOnScreenNotification(
+                                    "AutoExploreNoTunnel", 
+                                    T{rover.name}, 
+                                    T{AutoExplore.StringIdBase + 2, "Unable to find a working tunnel leading to the anomaly"}, 
+                                    "UI/Icons/Notifications/research_2.tga",
+                                    false,
+                                    {
+                                        expiration = 15000
+                                    }
+                                )
+                            end
+                        end
                     end
-                end
+                end                    
             end
         end
     end }
@@ -553,18 +462,6 @@ function AutoExploreConfigUpdatePeriod()
     return "1000"
 end
 
--- Battery threshold
-function AutoExploreBatteryThreshold()
-    if AutoExplore["mod_config_check"] == nil then
-        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-        AutoExplore.mod_config_check = g_ModConfigLoaded
-    end
-    if AutoExplore.mod_config_check then
-        return ModConfig:Get("AutoExplore", "BatteryThreshold")
-    end
-    return "60"
-end
-
 -- tunnel handling
 function AutoExploreTunnelHandling()
     if AutoExplore["mod_config_check"] == nil then
@@ -611,25 +508,6 @@ function OnMsg.ModConfigReady()
             {value = "10000", label = T{"10 s"}},
         },
         default = "1000" 
-    })
-
-    ModConfig:RegisterOption("AutoExplore", "BatteryThreshold", {
-        name = T{AutoExplore.StringIdBase + 41, "Battery threshold"},
-        desc = T{AutoExplore.StringIdBase + 42, "Percentage of battery charge below which the rover will go recharge itself."},
-        type = "enum",
-        values = {
-            {value = "10", label = T{"10%"}},
-            {value = "20", label = T{"20%"}},
-            {value = "30", label = T{"30%"}},
-            {value = "40", label = T{"40%"}},
-            {value = "50", label = T{"50%"}},
-            {value = "60", label = T{"60%"}},
-            {value = "70", label = T{"70%"}},
-            {value = "80", label = T{"80%"}},
-            {value = "90", label = T{"90%"}},
-            {value = "95", label = T{"95%"}},
-        },
-        default = "60" 
     })
 
     ModConfig:RegisterOption("AutoExplore", "TunnelHandling", {

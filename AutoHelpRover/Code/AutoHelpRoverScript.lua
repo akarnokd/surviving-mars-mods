@@ -66,8 +66,6 @@ function AutoHelpHandleRovers()
 
     local showNotifications = AutoHelpConfigShowNotification()
 
-    local batteryThreshold = tonumber(AutoHelpBatteryThreshold())
-
     local allRovers = UICity.labels.Rover
 
     AutoHelpForEachLabel("RCRover", function(rover)
@@ -92,56 +90,12 @@ function AutoHelpHandleRovers()
                     -- otherwise make sure there is plenty of charge
                     if rover.work_radius < HexAxialDistance(rover, obj) then
                         -- when its further away, make sure there is plenty of power
-                        if rover.battery_current > rover.battery_max * batteryThreshold / 100.0 then
-                            if showNotifications == "all" then
-                                -- display the notification
-                                AddCustomOnScreenNotification(
-                                    "AutoHelpRoverFix", 
-                                    T{ rover.name }, 
-                                    T{ AutoHelpRover.StringIdBase, "Going to fix: " .. obj.name }, 
-                                    "UI/Icons/Notifications/research_2.tga",
-                                    false,
-                                    {
-                                        expiration = 15000
-                                    }
-                                )
-                            end
-                            -- go next to the malfunctioning other rover
-                            rover:GoToPos(obj:GetPos())
-                        else
-                            -- otherwise go recharge first
-                            AutoHelpGoRecharge(rover)
-                        end
-                    else
-                        -- when it is in range but we have less than 60% battery, go recharge instead
-                        if rover.battery_current < rover.battery_max * 0.6 then
-                            AutoHelpGoRecharge(rover)
-                        end
-                    end
-
-                    return
-                end
-
-                -- find nearest rover with out of battery
-                local obj2, distance2 = AutoHelpFindNearest( 
-                    allRovers,
-                    -- which is not the rover being evaluated
-                    -- and has the state no battery
-                    function(o)
-                        return o ~= rover and o.command == "NoBattery"
-                    end
-                , rover)
-
-                if obj2 then
-                    -- always make sure the rover is fully charged before
-                    -- recharging somebody else
-                    if rover.battery_current > rover.battery_max * batteryThreshold / 100.0 then
                         if showNotifications == "all" then
                             -- display the notification
                             AddCustomOnScreenNotification(
-                                "AutoHelpRoverRechargeOther", 
+                                "AutoHelpRoverFix", 
                                 T{ rover.name }, 
-                                T{ AutoHelpRover.StringIdBase + 1, "Going to recharge: " .. obj2.name }, 
+                                T{ AutoHelpRover.StringIdBase, "Going to fix: " .. obj.name }, 
                                 "UI/Icons/Notifications/research_2.tga",
                                 false,
                                 {
@@ -149,45 +103,32 @@ function AutoHelpHandleRovers()
                                 }
                             )
                         end
-                        -- this will go to the target rover and equalize power
-                        --(BaseRover.InteractWithObject)(rover, obj2, "recharge")
-                        rover:InteractWithObject(obj2, "recharge")
-                    else
-                        -- recharge the rover itself first
-                        AutoHelpGoRecharge(rover)
+                        -- go next to the malfunctioning other rover
+                        rover:GoToPos(obj:GetPos())
                     end
-                    -- either way, the situation can be considered handled
+
                     return
                 end
 
-                -- if there are nobody to service, just keep it recharged
-                -- which also brings it back from the field
-                if rover.battery_current <= rover.battery_max * 0.99 then
-                    AutoHelpGoRecharge(rover)
-                else
-                    -- otherwise, the RoverCommandAI keeps the rover fully charged and would stay
-                    -- in the field indefinitely
-                    if g_RoverCommandResearched then
-                        -- locate the nearest recharge point
-                        local obj, distance = AutoHelpFindRechargeLocation(rover)
-                        -- if outside the current work radius, move next to it
-                        -- otherwise don't try to move there all the time
-                        if obj and rover.work_radius < HexAxialDistance(rover, obj) then
-                            if showNotifications == "all" then
-                                AddCustomOnScreenNotification(
-                                    "AutoHelpRoverReturnToBase", 
-                                    T{ rover.name }, 
-                                    T{ AutoHelpRover.StringIdBase + 2, "Returning from the field" }, 
-                                    "UI/Icons/Notifications/research_2.tga",
-                                    false,
-                                    {
-                                        expiration = 15000
-                                    }
-                                )
-                            end
-                            rover:GoToPos(obj:GetPos())
-                        end
+                -- bring the rover back to a safe location
+                -- locate the nearest recharge point
+                local obj, distance = AutoHelpFindRechargeLocation(rover)
+                -- if outside the current work radius, move next to it
+                -- otherwise don't try to move there all the time
+                if obj and rover.work_radius < HexAxialDistance(rover, obj) then
+                    if showNotifications == "all" then
+                        AddCustomOnScreenNotification(
+                            "AutoHelpRoverReturnToBase", 
+                            T{ rover.name }, 
+                            T{ AutoHelpRover.StringIdBase + 2, "Returning from the field" }, 
+                            "UI/Icons/Notifications/research_2.tga",
+                            false,
+                            {
+                                expiration = 15000
+                            }
+                        )
                     end
+                    rover:GoToPos(obj:GetPos())
                 end
             end
         end
@@ -201,43 +142,6 @@ function AutoHelpFindRechargeLocation(rover)
             return not IsKindOf(obj, "ConstructionSite")
         end
     }, rover)
-end
-
--- Find the nearest power cable to recharge
-function AutoHelpGoRecharge(rover)
-
-    local showNotifications = AutoHelpConfigShowNotification()
-
-    local obj, distance = AutoHelpFindRechargeLocation(rover)
-
-    if obj then
-        if showNotifications == "all" then
-            AddCustomOnScreenNotification(
-                "AutoHelpRoverRecharge", 
-                T{rover.name}, 
-                T{AutoHelpRover.StringIdBase + 3, "Going to recharge self"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
-        end
-        rover:InteractWithObject(obj, "recharge")
-    else
-        if showNotifications == "all" or showNotifications == "problems" then
-            AddCustomOnScreenNotification(
-                "AutoHelpRoverNoRecharge", 
-                T{rover.name}, 
-                T{AutoHelpRover.StringIdBase + 4, "Unable to find a recharge spot"}, 
-                "UI/Icons/Notifications/research_2.tga",
-                false,
-                {
-                    expiration = 15000
-                }
-            )
-        end
-    end
 end
 
 function OnMsg.ClassesBuilt()
@@ -257,7 +161,7 @@ function AutoHelpAddInfoSection()
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
             "Title", T{AutoHelpRover.StringIdBase + 5, "Auto Help"},
-            "RolloverText", T{AutoHelpRover.StringIdBase + 6, "Enable/Disable automatic repair/recharge of malfunctioning or out of battery rovers.<newline><newline>(AutoHelpRover mod)"},
+            "RolloverText", T{AutoHelpRover.StringIdBase + 6, "Enable/Disable automatic repair of malfunctioning rovers.<newline><newline>(AutoHelpRover mod)"},
             "RolloverTitle", T{AutoHelpRover.StringIdBase + 7, "Auto Help"},
             "RolloverHint",  T{AutoHelpRover.StringIdBase + 8, "<left_click> Toggle setting"},
             "OnContextUpdate",
@@ -305,16 +209,6 @@ function AutoHelpConfigUpdatePeriod()
     return "1500"
 end
 
--- Battery threshold
-function AutoHelpBatteryThreshold()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
-        return ModConfig:Get("AutoHelpRover", "BatteryThreshold")
-    end
-    return "90"
-end
-
-
 -- ModConfig signals "ModConfigReady" when it can be manipulated
 function OnMsg.ModConfigReady()
 
@@ -351,25 +245,4 @@ function OnMsg.ModConfigReady()
         },
         default = "1500" 
     })
-
-    
-    ModConfig:RegisterOption("AutoHelpRover", "BatteryThreshold", {
-        name = T{AutoHelpRover.StringIdBase + 20, "Battery threshold"},
-        desc = T{AutoHelpRover.StringIdBase + 21, "Percentage of battery charge below which the rover will go recharge itself."},
-        type = "enum",
-        values = {
-            {value = "10", label = T{"10%"}},
-            {value = "20", label = T{"20%"}},
-            {value = "30", label = T{"30%"}},
-            {value = "40", label = T{"40%"}},
-            {value = "50", label = T{"50%"}},
-            {value = "60", label = T{"60%"}},
-            {value = "70", label = T{"70%"}},
-            {value = "80", label = T{"80%"}},
-            {value = "90", label = T{"90%"}},
-            {value = "95", label = T{"95%"}},
-        },
-        default = "90" 
-    })
-
 end
