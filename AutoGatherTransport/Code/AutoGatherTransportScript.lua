@@ -1,11 +1,20 @@
+
+-- Mod's global
+AutoGatherTransport = { }
+-- Base ID for translatable text
+AutoGatherTransport.StringIdBase = 20182401
+
+-- install handler threads upon newgame
 function OnMsg.GameTimeStart()
     AutoGatherInstallThread()
 end
 
+-- install handler thread upon loading a saved game
 function OnMsg.LoadGame()
     AutoGatherInstallThread()
 end
 
+-- prevent the mod to run on the new game screen
 function OnMsg.ChangeMapDone(map)
     if map == "PreGame" then
         return 
@@ -19,19 +28,22 @@ function AutoGatherInstallThread()
         AutoGatherPathFinding.zonesBuilt = true;
     end
 
-    CreateGameTimeThread(function()
-        while true do
-            -- detect script reload and rebuild the zones
-            if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt then
-                AutoGatherPathFinding:BuildZones()
-                AutoGatherPathFinding.zonesBuilt = true;
-            end
+    -- make sure the handler thread is installed at most once
+    if UICity and not IsValidThread(UICity.AutoGatherTransportThread_GameTime) then
+        UICity.AutoGatherTransportThread_GameTime = CreateGameTimeThread(function()
+            while true do
+                -- detect script reload and rebuild the zones
+                if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt then
+                    AutoGatherPathFinding:BuildZones()
+                    AutoGatherPathFinding.zonesBuilt = true;
+                end
 
-            AutoGatherHandleTransports()
-            local period = AutoGatherConfigUpdatePeriod()
-            Sleep(tonumber(period))
-        end
-    end)
+                AutoGatherHandleTransports()
+                local period = AutoGatherConfigUpdatePeriod()
+                Sleep(tonumber(period))
+            end
+        end)
+    end
 end
 
 -- find the nearest object to the target based on additional filtering
@@ -121,11 +133,6 @@ function AutoGatherHandleTransports()
         end
     end)
 end
-
--- Mod's global
-AutoGatherTransport = { }
--- Base ID for translatable text
-AutoGatherTransport.StringIdBase = 20182401
 
 -- Dedicated actions
 

@@ -11,12 +11,15 @@ end
 
 -- Install the game time thread that periodically evaluates objects
 function AutoDemolishExtractorsInstallThread()
-    CreateGameTimeThread(function()
-        while true do
-            Sleep(1000)
-            AutoDemolishExtractorsHandler() 
-        end
-    end)
+    -- make sure the handler thread is installed at most once
+    if UICity and not IsValidThread(UICity.AutoDemolishExtractorsThread_GameTime) then
+        UICity.AutoDemolishExtractorsThread_GameTime = CreateGameTimeThread(function()
+            while true do
+                Sleep(1000)
+                AutoDemolishExtractorsHandler() 
+            end
+        end)
+    end
 end
 
 -- Mod's global

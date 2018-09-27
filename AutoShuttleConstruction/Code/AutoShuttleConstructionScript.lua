@@ -10,12 +10,15 @@ function OnMsg.LoadGame()
 end
 
 function AutoShuttleConstructionInstallThread()
-    CreateGameTimeThread(function()
-        while true do
-            Sleep(1000)
-            AutoShuttleConstructionManageHubs() 
-        end
-    end)
+    -- make sure the handler thread is installed at most once
+    if UICity and not IsValidThread(UICity.AutoShuttleConstructionThread_GameTime) then
+        UICity.AutoShuttleConstructionThread_GameTime = CreateGameTimeThread(function()
+            while true do
+                Sleep(1000)
+                AutoShuttleConstructionManageHubs() 
+            end
+        end)
+    end
 end
 
 -- Mod's global

@@ -8,13 +8,16 @@ end
 
 -- Install the game time thread that periodically evaluates rovers
 function AutoHelpInstallThread()
-    CreateGameTimeThread(function()
-        while true do
-            AutoHelpHandleRovers() 
-            local period = AutoHelpConfigUpdatePeriod()
-            Sleep(tonumber(period))
-        end
-    end)
+    -- make sure the handler thread is installed at most once
+    if UICity and not IsValidThread(UICity.AutoHelpRoverThread_GameTime) then
+        UICity.AutoHelpRoverThread_GameTime = CreateGameTimeThread(function()
+            while true do
+                AutoHelpHandleRovers() 
+                local period = AutoHelpConfigUpdatePeriod()
+                Sleep(tonumber(period))
+            end
+        end)
+    end
 end
 
 -- Mod's global

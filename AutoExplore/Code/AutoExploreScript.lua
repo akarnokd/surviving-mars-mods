@@ -20,19 +20,22 @@ function AutoExploreInstallThread()
         AutoExplorePathFinding.zonesBuilt = true;
     end
 
-    CreateGameTimeThread(function()
-        while true do
-            -- detect script reload and rebuild the zones
-            if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt then
-                AutoExplorePathFinding:BuildZones()
-                AutoExplorePathFinding.zonesBuilt = true;
-            end
+    -- make sure the handler thread is installed at most once
+    if UICity and not IsValidThread(UICity.AutoExploreThread_GameTime) then
+        UICity.AutoExploreThread_GameTime = CreateGameTimeThread(function()
+            while true do
+                -- detect script reload and rebuild the zones
+                if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt then
+                    AutoExplorePathFinding:BuildZones()
+                    AutoExplorePathFinding.zonesBuilt = true;
+                end
 
-            AutoExploreHandleRovers() 
-            local period = AutoExploreConfigUpdatePeriod()
-            Sleep(tonumber(period))
-        end
-    end)
+                AutoExploreHandleRovers() 
+                local period = AutoExploreConfigUpdatePeriod()
+                Sleep(tonumber(period))
+            end
+        end)
+    end
 end
 
 -- Mod's global
