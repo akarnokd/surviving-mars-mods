@@ -17,12 +17,20 @@ RC Transports automatically collect surface deposits and move them next to an Un
 
 ## AutoHelpRover
 
-RC Rovers automatically repair or recharge other rovers.
+RC Rovers automatically repair other rovers.
+
+## AutoDemolishExtractors
+
+When a Extractor (concrete, metal, rare metal) is depleted, it will be automatically salvaged and cleared (if the respective research has been done).
+
+## AutoShuttleConstruction
+
+Queues up the construction of Shuttles in all Shuttle hubs when there is enough resources available for constructing them.
+
+## AutoScanMap
+
+Automatically scans the next sector of the map (near player structures and vehicles) until all sectors have been scanned. When deep scanning becomes available, the map is scanned again
 
 ## ExtractorAvailableDeposit
 
 The Information Panel of the various extractor buildings now show the available (remaining) resource deposit they are working on.
-
-## AutoDemolishConcreteExtractor
-
-When a Concrete Extractor is depleted, it will be automatically salvaged and cleared (if the respective research has been done).
