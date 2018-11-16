@@ -132,11 +132,19 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
     end
 end
 
+-- Check if any of the ModConfig mods are installed
+function ModConfigAvailable()
+    -- ModConfig old
+    local found = table.find_value(ModsLoaded, "steam_id", "1340775972") or
+    -- ModConfig reborn
+                  table.find_value(ModsLoaded, "steam_id", "1542863522") or false
+    return found    
+end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoDemolishExtractorsShowNotification()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
+    local g_ModConfigLoaded = ModConfigAvailable()
+    if g_ModConfigLoaded and ModConfig:IsReady() then
         return ModConfig:Get("AutoDemolishExtractors", "Notifications")
     end
     return "all"
@@ -144,8 +152,8 @@ end
 
 -- See if ModConfig is installed and operations are enabled for a particular building class
 function AutoDemolishExtractorsEnabledAction(buildingClass)
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
+    local g_ModConfigLoaded = ModConfigAvailable()
+    if g_ModConfigLoaded  and ModConfig:IsReady() then
         local nano = ModConfig:Get("AutoDemolishExtractors", "NanoRefinement")
         local act = ModConfig:Get("AutoDemolishExtractors", "Action" .. buildingClass)
 

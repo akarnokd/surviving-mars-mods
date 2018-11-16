@@ -126,10 +126,21 @@ end
 
 -- Mod configuration
 -- ==========================================================================
+
+-- Check if any of the ModConfig mods are installed
+function ModConfigAvailable()
+    -- ModConfig old
+    local found = table.find_value(ModsLoaded, "steam_id", "1340775972") or
+    -- ModConfig reborn
+                  table.find_value(ModsLoaded, "steam_id", "1542863522") or false
+    return found    
+end
+
+
 -- See if ModConfig is installed and that notifications are enabled
 function AutoShuttleConstructionConfigShowNotification()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
+    local g_ModConfigLoaded = ModConfigAvailable()
+    if g_ModConfigLoaded and ModConfig:IsReady() then
         return ModConfig:Get("AutoShuttleConstruction", "Notifications")
     end
     return "all"
@@ -137,8 +148,8 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoShuttleConstructionConfigThreshold()
-    local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-    if g_ModConfigLoaded then
+    local g_ModConfigLoaded = ModConfigAvailable()
+    if g_ModConfigLoaded and ModConfig:IsReady() then
         return ModConfig:Get("AutoShuttleConstruction", "Threshold")
     end
     return "5"

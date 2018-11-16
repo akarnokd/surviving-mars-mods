@@ -418,18 +418,23 @@ end
 
 -- Setup ModConfig UI
 
+-- Check if any of the ModConfig mods are installed
+function ModConfigAvailable()
+    -- ModConfig old
+    local found = table.find_value(ModsLoaded, "steam_id", "1340775972") or
+    -- ModConfig reborn
+                  table.find_value(ModsLoaded, "steam_id", "1542863522") or false
+    return found    
+end
+
+
 -- Check if the ModConfig mod has been loaded and is ready -> returns true
 function AutoGatherModConfigAvailable()
-    if AutoGatherTransport["mod_config_check"] == nil then
-        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
-        AutoGatherTransport.mod_config_check = g_ModConfigLoaded
+    if AutoExplore["mod_config_check"] == nil then
+        local g_ModConfigLoaded = ModConfigAvailable()
+        AutoExplore.mod_config_check = g_ModConfigLoaded
     end
-    if AutoGatherTransport.mod_config_check then
-        if ModConfig:IsReady() then
-            return true
-        end
-    end
-    return false
+    return AutoExplore.mod_config_check and ModConfig:IsReady()
 end
 
 -- Read a specific configuration setting or return the default value

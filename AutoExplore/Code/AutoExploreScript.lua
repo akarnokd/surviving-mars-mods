@@ -441,13 +441,23 @@ function AutoExploreAddInfoSection()
 
 end
 
+-- Check if any of the ModConfig mods are installed
+function ModConfigAvailable()
+    -- ModConfig old
+    local found = table.find_value(ModsLoaded, "steam_id", "1340775972") or
+    -- ModConfig reborn
+                  table.find_value(ModsLoaded, "steam_id", "1542863522") or false
+    return found
+end
+
+
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigShowNotification()
     if AutoExplore["mod_config_check"] == nil then
-        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        local g_ModConfigLoaded = ModConfigAvailable()
         AutoExplore.mod_config_check = g_ModConfigLoaded
     end
-    if AutoExplore.mod_config_check then
+    if AutoExplore.mod_config_check and ModConfig:IsReady() then
         return ModConfig:Get("AutoExplore", "Notifications")
     end
     return "all"
@@ -456,10 +466,10 @@ end
 -- See if ModConfig is installed and that notifications are enabled
 function AutoExploreConfigUpdatePeriod()
     if AutoExplore["mod_config_check"] == nil then
-        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        local g_ModConfigLoaded = ModConfigAvailable()
         AutoExplore.mod_config_check = g_ModConfigLoaded
     end
-    if AutoExplore.mod_config_check then
+    if AutoExplore.mod_config_check and ModConfig:IsReady() then
         return ModConfig:Get("AutoExplore", "UpdatePeriod")
     end
     return "1000"
@@ -468,10 +478,10 @@ end
 -- tunnel handling
 function AutoExploreTunnelHandling()
     if AutoExplore["mod_config_check"] == nil then
-        local g_ModConfigLoaded = table.find_value(ModsLoaded, "steam_id", "1340775972") or false
+        local g_ModConfigLoaded = ModConfigAvailable()
         AutoExplore.mod_config_check = g_ModConfigLoaded
     end
-    if AutoExplore.mod_config_check then
+    if AutoExplore.mod_config_check and ModConfig:IsReady() then
         return ModConfig:Get("AutoExplore", "TunnelHandling")
     end
     return "off"
