@@ -374,7 +374,7 @@ function AutoGatherAddInfoSection()
     -- current mod location, strip off the Code/AutoGatherTransportScript.lua from the end
 
     --local this_mod_dir = debug.getinfo(2, "S").source:sub(2, -35)
-    local this_mod_dir = Mods["Zq7BVyy"].path
+    local this_mod_dir = CurrentModPath -- Mods["Zq7BVyy"].path
 
     table.insert(XTemplates.ipRover[1], 
     PlaceObj("XTemplateTemplate", {
@@ -430,11 +430,11 @@ end
 
 -- Check if the ModConfig mod has been loaded and is ready -> returns true
 function AutoGatherModConfigAvailable()
-    if AutoExplore["mod_config_check"] == nil then
+    if AutoGatherTransport["mod_config_check"] == nil then
         local g_ModConfigLoaded = ModConfigAvailable()
-        AutoExplore.mod_config_check = g_ModConfigLoaded
+        AutoGatherTransport.mod_config_check = g_ModConfigLoaded
     end
-    return AutoExplore.mod_config_check and ModConfig:IsReady()
+    return AutoGatherTransport.mod_config_check and ModConfig:IsReady()
 end
 
 -- Read a specific configuration setting or return the default value
