@@ -139,10 +139,31 @@ end
 function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunnelHandling)
     local showNotifications = AutoGatherConfigShowNotification()
 
+    -- default enable gather filters
+    if rover.gather_metal == nil then
+        rover.gather_metal = true
+        rover.gather_polymer = true
+    end
+
     local obj, distance = AutoGatherFindNearest(deposits,
         function(o, rz)
-            -- use the pathfinding helper to see if the anomaly is reachable
-            return AutoGatherPathFinding:CanReachObject(zonesReachable, roverZone, o)
+            -- use the pathfinding helper to see if the deposit is reachable
+            if AutoGatherPathFinding:CanReachObject(zonesReachable, roverZone, o) then
+                -- consider filtering based on settings
+                local targetObject = o
+                -- surface deposit group type is one of its component's type
+                if IsKindOf(o, "SurfaceDepositGroup") then
+                    -- must target its components
+                    targetObject = o.group[1]
+                end
+                if IsKindOf(targetObject, "SurfaceDepositMetals") then
+                    return rover.gather_metal
+                end
+                if IsKindOf(targetObject, "SurfaceDepositPolymers") then
+                    return rover.gather_polymer
+                end
+            end
+            return false
         end,
         rover)
 
@@ -414,6 +435,83 @@ function AutoGatherAddInfoSection()
             })
         })
     )
+
+    -- Filter for metal deposits
+    table.insert(XTemplates.ipRover[1], 
+        PlaceObj("XTemplateTemplate", {
+            "__context_of_kind", "RCTransport",
+            "__template", "InfopanelActiveSection",
+            "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
+            "Title", T{AutoGatherTransport.StringIdBase + 40, "Gather Metal"},
+            "RolloverText", T{AutoGatherTransport.StringIdBase + 41, "Enable/Disable the automatic gathering of metal deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
+            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 42, "Gather Metal"},
+            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 43, "<left_click> Toggle setting"},
+            "OnContextUpdate",
+                function(self, context)
+                    -- setup default
+                    if context.gather_metal == nil then
+                        context.gather_metal = true
+                    end
+                    if context.gather_metal then
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 44, "Gather Metal (ON)"})
+                        self:SetIcon(this_mod_dir.."UI/res_metal_on.tga")
+                    else
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 45, "Gather Metal (OFF)"})
+                        self:SetIcon(this_mod_dir.."UI/res_metal_off.tga")
+                    end
+                end,
+                "UniqueId", "AutoGatherTransport-3"
+        }, {
+            PlaceObj("XTemplateFunc", {
+                "name", "OnActivate(self, context)", 
+                "parent", function(parent, context)
+                        return parent.parent
+                    end,
+                "func", function(self, context)
+                        context.gather_metal = not context.gather_metal
+                        ObjModified(context)
+                    end
+            })
+        })
+    )
+    -- Filter for polymer deposits
+    table.insert(XTemplates.ipRover[1], 
+        PlaceObj("XTemplateTemplate", {
+            "__context_of_kind", "RCTransport",
+            "__template", "InfopanelActiveSection",
+            "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
+            "Title", T{AutoGatherTransport.StringIdBase + 50, "Gather Polymer"},
+            "RolloverText", T{AutoGatherTransport.StringIdBase + 51, "Enable/Disable the automatic gathering of polymer deposits by this rover.<newline><newline>(AutoGatherTransport mod)"},
+            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 52, "Gather Polymer"},
+            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 53, "<left_click> Toggle setting"},
+            "OnContextUpdate",
+                function(self, context)
+                    -- setup default
+                    if context.gather_polymer == nil then
+                        context.gather_polymer = true
+                    end
+                    if context.gather_polymer then
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 54, "Gather Polymer (ON)"})
+                        self:SetIcon(this_mod_dir.."UI/res_polymer_on.tga")
+                    else
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 55, "Gather Polymer (OFF)"})
+                        self:SetIcon(this_mod_dir.."UI/res_polymer_off.tga")
+                    end
+                end,
+                "UniqueId", "AutoGatherTransport-4"
+        }, {
+            PlaceObj("XTemplateFunc", {
+                "name", "OnActivate(self, context)", 
+                "parent", function(parent, context)
+                        return parent.parent
+                    end,
+                "func", function(self, context)
+                        context.gather_polymer = not context.gather_polymer
+                        ObjModified(context)
+                    end
+            })
+        })
+    )
 end
 
 -- Setup ModConfig UI
@@ -450,7 +548,7 @@ end
 
 -- See if ModConfig is installed and that notifications are enabled
 function AutoGatherConfigShowNotification()
-    return AutoGatherGetConfig("Notifications", "all")
+    return AutoGatherGetConfig("Notifications", "problems")
 end
 
 -- See if ModConfig is installed and that notifications are enabled
