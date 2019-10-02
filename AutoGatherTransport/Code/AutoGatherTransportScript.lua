@@ -94,7 +94,7 @@ function AutoGatherHandleTransports()
     local zonesReachable = AutoGatherPathFinding:GetZonesReachableViaTunnels()
 
     local deposits = GetObjects { 
-        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup" 
+        classes = "SurfaceDepositMetals,SurfaceDepositConcrete,SurfaceDepositPolymers,SurfaceDepositGroup,WasteRockStockpileBase" 
     }
 
     --[[
@@ -143,6 +143,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunne
     if rover.gather_metal == nil then
         rover.gather_metal = true
         rover.gather_polymer = true
+        rover.gather_wasterock = true
     end
 
     local obj, distance = AutoGatherFindNearest(deposits,
@@ -162,6 +163,19 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunne
                 if IsKindOf(targetObject, "SurfaceDepositPolymers") then
                     return rover.gather_polymer
                 end
+                if IsKindOf(targetObject, "WasteRockStockpileBase") 
+                        and targetObject.resource ~= "BlackCube" 
+                        and not IsKindOf(targetObject, "Unit")
+                        and not targetObject:GetParent()        -- dump sites have raw waste rocks apparently as objects
+                then
+                    if rover.gather_wasterock and rover.auto_unload_at then
+                        -- exclusion zone around auto_unload_at
+                        local p = targetObject:GetPos()
+                        local dist = (rover.auto_unload_at:x() - p:x())^2 + (rover.auto_unload_at:y() - p:y())^2
+                        local limit = 3000 ^ 2
+                        return dist > limit
+                    end
+                end
             end
             return false
         end,
@@ -176,6 +190,7 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunne
                 AddCustomOnScreenNotification(
                     "AutoGatherTransportGather", 
                     T{rover.name}, 
+                    --T{AutoGatherTransport.StringIdBase, "Started gathering resource(s) at "}..(obj:GetPos():x())..", "..(obj:GetPos():y()).." <> "..distance, 
                     T{AutoGatherTransport.StringIdBase, "Started gathering resource(s)"}, 
                     "UI/Icons/Notifications/research_2.tga",
                     false,
@@ -507,6 +522,45 @@ function AutoGatherAddInfoSection()
                     end,
                 "func", function(self, context)
                         context.gather_polymer = not context.gather_polymer
+                        ObjModified(context)
+                    end
+            })
+        })
+    )
+
+    -- Filter for waste rock deposits
+    table.insert(XTemplates.ipRover[1], 
+        PlaceObj("XTemplateTemplate", {
+            "__context_of_kind", "RCTransport",
+            "__template", "InfopanelActiveSection",
+            "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
+            "Title", T{AutoGatherTransport.StringIdBase + 100, "Gather Waste Rock"},
+            "RolloverText", T{AutoGatherTransport.StringIdBase + 101, "Enable/Disable the automatic gathering of waste rock deposits by this rover.<newline>Warning: it requires a custom drop location to be set!<newline><newline>(AutoGatherTransport mod)"},
+            "RolloverTitle", T{AutoGatherTransport.StringIdBase + 102, "Gather Waste Rock"},
+            "RolloverHint",  T{AutoGatherTransport.StringIdBase + 103, "<left_click> Toggle setting"},
+            "OnContextUpdate",
+                function(self, context)
+                    -- setup default
+                    if context.gather_wasterock == nil then
+                        context.gather_wasterock = true
+                    end
+                    if context.gather_wasterock then
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 104, "Gather Waste Rock (ON)"})
+                        self:SetIcon(this_mod_dir.."UI/res_wasterock_on.tga")
+                    else
+                        self:SetTitle(T{AutoGatherTransport.StringIdBase + 1055, "Gather Waste Rock (OFF)"})
+                        self:SetIcon(this_mod_dir.."UI/res_wasterock_off.tga")
+                    end
+                end,
+                "UniqueId", "AutoGatherTransport-4"
+        }, {
+            PlaceObj("XTemplateFunc", {
+                "name", "OnActivate(self, context)", 
+                "parent", function(parent, context)
+                        return parent.parent
+                    end,
+                "func", function(self, context)
+                        context.gather_wasterock = not context.gather_wasterock
                         ObjModified(context)
                     end
             })
