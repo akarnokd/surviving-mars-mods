@@ -32,12 +32,12 @@ function AutoScanMap()
     end
 
     -- game is not yet initialized
-    if not mapdata.GameLogic then
+    if not UICity then
         return
     end
 
     -- check the global queue for ongoing exploration
-    if g_ExplorationQueue and #g_ExplorationQueue == 0 then
+    if UICity.ExplorationQueue and #UICity.ExplorationQueue == 0 then
 
         local scanCandidates = { }
 
@@ -46,7 +46,7 @@ function AutoScanMap()
 
         for x = 1, const.SectorCount do
             for y = 1, const.SectorCount do
-                local sector = g_MapSectors[x][y];
+                local sector = UICity.MapSectors[x][y];
                 if sector:CanBeScanned() then
                     -- full scanning is enabled
                     if mode == "all"

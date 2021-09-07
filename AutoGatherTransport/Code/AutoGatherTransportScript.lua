@@ -33,7 +33,9 @@ function AutoGatherInstallThread()
         UICity.AutoGatherTransportThread_GameTime = CreateGameTimeThread(function()
             while true do
                 -- detect script reload and rebuild the zones
-                if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt then
+                if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt 
+                    and ActiveGameMap and ActiveGameMap.object_hex_grid
+                then
                     AutoGatherPathFinding:BuildZones()
                     AutoGatherPathFinding.zonesBuilt = true;
                 end
@@ -84,7 +86,7 @@ end
 
 function AutoGatherHandleTransports()
     -- game is not yet initialized
-    if not mapdata.GameLogic then
+    if not ActiveMapData.GameLogic then
         return
     end
     -- should the logic try and work out paths via tunnels?

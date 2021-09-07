@@ -31,11 +31,11 @@ AutoShuttleConstruction.StringIdBase = 20185406
 -- ==========================================================================
 function AutoShuttleConstructionManageHubs()
     -- game is not yet initialized
-    if not mapdata.GameLogic then
+    if not UICity then
         return
     end
 
-    if not ResourceOverviewObj then
+    if not g_ResourceOverviewCity then
         -- not ready yet?
         return
     end
@@ -60,8 +60,8 @@ function AutoShuttleConstructionManageHubs()
     local electronicsName = "Electronics"
 
     -- total available resources
-    local totalPolymers = ResourceOverviewObj:GetAvailable(polymerName) or 0
-    local totalElectronics = ResourceOverviewObj:GetAvailable(electronicsName) or 0
+    local totalPolymers = g_ResourceOverviewCity[UICity.map_id].data[polymerName] or 0
+    local totalElectronics = g_ResourceOverviewCity[UICity.map_id].data[electronicsName] or 0
 
     local queuedShuttles = 0
 

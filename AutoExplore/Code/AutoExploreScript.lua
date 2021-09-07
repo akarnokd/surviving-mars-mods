@@ -25,7 +25,9 @@ function AutoExploreInstallThread()
         UICity.AutoExploreThread_GameTime = CreateGameTimeThread(function()
             while true do
                 -- detect script reload and rebuild the zones
-                if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt then
+                if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt 
+                    and ActiveGameMap and ActiveGameMap.object_hex_grid
+                then
                     AutoExplorePathFinding:BuildZones()
                     AutoExplorePathFinding.zonesBuilt = true;
                 end
@@ -103,7 +105,7 @@ end
 -- handle all the relevant rovers
 function AutoExploreHandleRovers()
     -- game is not yet initialized
-    if not mapdata.GameLogic then
+    if not UICity then
         return
     end
 

@@ -262,7 +262,7 @@ AutoGatherPathFinding = {
         -- rovers have this value in game
         local pfclass = 1
 
-        local ogrid = ObjectGrid
+        local ogrid = ActiveGameMap.object_hex_grid
 
         -- for each cell on the map
         for y = 1, mapHeight do
@@ -275,7 +275,7 @@ AutoGatherPathFinding = {
                 local x = xRect - (y / 2)
 
                 -- is there anything?
-                if HexGridGetObject(ogrid, x, y) then
+                if ObjectHexGrid.GetObject(ogrid, x, y) then
                     --or HexGridGet(lgrid, point(x, y)
 
                     -- if so, ignore it and consider the location to be passable

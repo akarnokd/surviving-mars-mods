@@ -32,7 +32,7 @@ AutoDemolishExtractors.StringIdBase = 20184406
 
 function AutoDemolishExtractorsHandler()
     -- game is not yet initialized
-    if not mapdata.GameLogic then
+    if not UICity then
         return
     end
 
@@ -112,7 +112,7 @@ function AutoDemolishExtractorsOf(buildingClass, showNotifications, name)
                     if enabledAction == "all" then
                         -- if destroyed but not yet bulldozed and the research is there
                         if (extractor.destroyed) and (not extractor.bulldozed) 
-                                and UICity:IsTechResearched("DecommissionProtocol") then
+                                and UIColony:IsTechResearched("DecommissionProtocol") then
                             -- display the salvage notification if allowed
                             if showNotifications == "all" then
                                 AddCustomOnScreenNotification("AutoDemolishExtractorDecomission", 
@@ -157,7 +157,7 @@ function AutoDemolishExtractorsEnabledAction(buildingClass)
         local nano = ModConfig:Get("AutoDemolishExtractors", "NanoRefinement")
         local act = ModConfig:Get("AutoDemolishExtractors", "Action" .. buildingClass)
 
-        if UICity:IsTechResearched("NanoRefinement") and nano == "off" then
+        if UIColony:IsTechResearched("NanoRefinement") and nano == "off" then
             return "off"
         end
         return act

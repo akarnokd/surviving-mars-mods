@@ -260,7 +260,7 @@ AutoExplorePathFinding = {
         -- rovers have this value in game
         local pfclass = 1
 
-        local grid = ObjectGrid
+        local grid = ActiveGameMap.object_hex_grid
 
         -- for each cell on the map
         for y = 1, mapHeight do
@@ -273,7 +273,7 @@ AutoExplorePathFinding = {
                 local x = xRect - (y / 2)
 
                 -- is there anything?
-                if HexGridGetObject(grid, x, y) then
+                if ObjectHexGrid.GetObject(grid, x, y) then
                     -- if so, ignore it and consider the location to be passable
                     -- in case the building gets removed later on
                     -- or is already there to begin with
