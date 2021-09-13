@@ -148,10 +148,17 @@ function AutoGatherFindDeposit(rover, zonesReachable, roverZone, deposits, tunne
         rover.gather_wasterock = true
     end
 
+    local roverOnSurface = rover:GetMapID() == UIColony.surface_map_id
+
     local obj, distance = AutoGatherFindNearest(deposits,
         function(o, rz)
+
+            local depositOnSameMap = o:GetMapID() == rover:GetMapID()
+
             -- use the pathfinding helper to see if the deposit is reachable
-            if AutoGatherPathFinding:CanReachObject(zonesReachable, roverZone, o) then
+            if (roverOnSurface and AutoGatherPathFinding:CanReachObject(zonesReachable, roverZone, o))
+                or (not roverOnSurface and depositOnSameMap)
+            then
                 -- consider filtering based on settings
                 local targetObject = o
                 -- surface deposit group type is one of its component's type
