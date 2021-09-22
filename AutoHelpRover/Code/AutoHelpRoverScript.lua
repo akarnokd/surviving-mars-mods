@@ -6,12 +6,14 @@ function OnMsg.LoadGame()
     AutoHelpInstallThread()
 end
 
+local AutoHelpModActive = true
+
 -- Install the game time thread that periodically evaluates rovers
 function AutoHelpInstallThread()
     -- make sure the handler thread is installed at most once
     if UICity and not IsValidThread(UICity.AutoHelpRoverThread_GameTime) then
         UICity.AutoHelpRoverThread_GameTime = CreateGameTimeThread(function()
-            while true do
+            while AutoHelpModActive do
                 AutoHelpHandleRovers() 
                 local period = AutoHelpConfigUpdatePeriod()
                 Sleep(tonumber(period))

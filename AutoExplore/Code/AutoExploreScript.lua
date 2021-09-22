@@ -13,6 +13,8 @@ function OnMsg.ChangeMapDone(map)
     AutoExplorePathFinding.ingameMap = true
 end
 
+local AutoExploreModActive = true
+
 function AutoExploreInstallThread()
     if AutoExplorePathFinding.ingameMap then
         -- PostNewMapLoaded seems to be too early?
@@ -23,7 +25,7 @@ function AutoExploreInstallThread()
     -- make sure the handler thread is installed at most once
     if UICity and not IsValidThread(UICity.AutoExploreThread_GameTime) then
         UICity.AutoExploreThread_GameTime = CreateGameTimeThread(function()
-            while true do
+            while AutoExploreModActive do
                 -- detect script reload and rebuild the zones
                 if AutoExplorePathFinding.ingameMap and not AutoExplorePathFinding.zonesBuilt 
                     and ActiveGameMap and ActiveGameMap.object_hex_grid

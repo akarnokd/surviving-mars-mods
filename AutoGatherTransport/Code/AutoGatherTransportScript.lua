@@ -22,6 +22,8 @@ function OnMsg.ChangeMapDone(map)
     AutoGatherPathFinding.ingameMap = true
 end
 
+local AutoGatherModActive = true
+
 function AutoGatherInstallThread()
     if AutoGatherPathFinding.ingameMap then
         AutoGatherPathFinding:BuildZones()
@@ -31,7 +33,7 @@ function AutoGatherInstallThread()
     -- make sure the handler thread is installed at most once
     if UICity and not IsValidThread(UICity.AutoGatherTransportThread_GameTime) then
         UICity.AutoGatherTransportThread_GameTime = CreateGameTimeThread(function()
-            while true do
+            while AutoGatherModActive do
                 -- detect script reload and rebuild the zones
                 if AutoGatherPathFinding.ingameMap and not AutoGatherPathFinding.zonesBuilt 
                     and ActiveGameMap and ActiveGameMap.object_hex_grid

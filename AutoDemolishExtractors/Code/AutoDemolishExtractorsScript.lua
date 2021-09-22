@@ -9,12 +9,14 @@ function OnMsg.LoadGame()
     AutoDemolishExtractorsInstallThread()
 end
 
+local AutoDemolishExtractorModActive = true
+
 -- Install the game time thread that periodically evaluates objects
 function AutoDemolishExtractorsInstallThread()
     -- make sure the handler thread is installed at most once
     if UICity and not IsValidThread(UICity.AutoDemolishExtractorsThread_GameTime) then
         UICity.AutoDemolishExtractorsThread_GameTime = CreateGameTimeThread(function()
-            while true do
+            while AutoDemolishExtractorModActive do
                 Sleep(1000)
                 AutoDemolishExtractorsHandler() 
             end

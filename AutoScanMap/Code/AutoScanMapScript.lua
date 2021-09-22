@@ -8,11 +8,13 @@ function OnMsg.LoadGame()
     AutoScanMapInstallThread()
 end
 
+local AutoScanMapModActive = true
+
 function AutoScanMapInstallThread()
     -- make sure the handler thread is installed at most once
     if UICity and not IsValidThread(UICity.AutoScanMapThread_GameTime) then
         UICity.AutoScanMapThread_GameTime = CreateGameTimeThread(function()
-            while true do
+            while AutoScanMapModActive do
                 Sleep(5000)
                 AutoScanMap() 
             end
