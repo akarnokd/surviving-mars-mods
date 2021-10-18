@@ -36,7 +36,11 @@ function AutoExploreInstallThread()
 
                 AutoExploreHandleRovers() 
                 local period = AutoExploreConfigUpdatePeriod()
-                Sleep(tonumber(period))
+                local nperiod = tonumber(period)
+                if nperiod == nil then
+                    nperiod = 1000;
+                end
+                Sleep(nperiod)
             end
         end)
     end

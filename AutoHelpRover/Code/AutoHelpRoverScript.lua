@@ -16,7 +16,11 @@ function AutoHelpInstallThread()
             while AutoHelpModActive do
                 AutoHelpHandleRovers() 
                 local period = AutoHelpConfigUpdatePeriod()
-                Sleep(tonumber(period))
+                local nperiod = tonumber(period)
+                if nperiod == nil then
+                    nperiod = 1000;
+                end
+                Sleep(nperiod)
             end
         end)
     end
