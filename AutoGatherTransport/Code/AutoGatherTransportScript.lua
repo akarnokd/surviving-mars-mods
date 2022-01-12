@@ -82,7 +82,7 @@ end
 
 -- enumerate objects of a given City label
 function AutoGatherForEachLabel(label, func)
-    for _, obj in ipairs(UICity.labels[label] or empty_table) do
+    for _, obj in ipairs(MainCity.labels[label] or empty_table) do
         if func(obj) == "break" then
             return
         end
@@ -119,7 +119,7 @@ function AutoGatherHandleTransports()
     end
     --]]
 
-    AutoGatherForEachLabel("RCTransport", function(rover)
+    AutoGatherForEachLabel("RCTransportAndChildren", function(rover)
         -- Enabled via the InfoPanel UI section "Auto Gather"
         if rover.auto_gather then
 
@@ -285,13 +285,18 @@ function AutoGatherUnloadContent(rover, zonesReachable, roverZone, tunnelHandlin
         rover:SetCommand("DumpCargo", rover.auto_unload_at, "all")
         return
     end
+    
+    local roverOnSurface = rover:GetMapID() == UIColony.surface_map_id
 
     -- otherwise, find the nearest depot
     local obj, distance = FindNearest({ 
         class = "UniversalStorageDepot",
         filter = function(o, rz)
             if not IsKindOf(o, "SupplyRocket") then
-                return AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o)
+                local depositOnSameMap = o:GetMapID() == rover:GetMapID()
+
+                return (roverOnSurface and AutoGatherPathFinding:CanReachObject(zonesReachable, rz, o))
+                    or (not roverOnSurface and depositOnSameMap)
             end
             return false
         end
@@ -381,16 +386,11 @@ function OnMsg.ClassesBuilt()
     AutoGatherAddInfoSection()
 end
 
-function AutoGatherAddInfoSection()
-    -- if the templates have been added, don't add them again
-    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
-    if table.find(XTemplates.ipRover[1], "UniqueId", "AutoGatherTransport-1") then
-        return
-    end
+function AutoGatherAddInfoSectionFor(uicontext)
 
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
-            "__context_of_kind", "RCTransport",
+            "__context_of_kind", uicontext,
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
             "Title", T{AutoGatherTransport.StringIdBase + 11, "Auto Gather"},
@@ -429,7 +429,7 @@ function AutoGatherAddInfoSection()
 
     table.insert(XTemplates.ipRover[1], 
     PlaceObj("XTemplateTemplate", {
-        "__context_of_kind", "RCTransport",
+        "__context_of_kind", uicontext,
         "__template", "InfopanelActiveSection",
         "Icon", this_mod_dir.."UI/unload_at_nearest.tga",
         "Title", T{AutoGatherTransport.StringIdBase + 28, "Auto unload at"},
@@ -469,7 +469,7 @@ function AutoGatherAddInfoSection()
     -- Filter for metal deposits
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
-            "__context_of_kind", "RCTransport",
+            "__context_of_kind", uicontext,
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
             "Title", T{AutoGatherTransport.StringIdBase + 40, "Gather Metal"},
@@ -507,7 +507,7 @@ function AutoGatherAddInfoSection()
     -- Filter for polymer deposits
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
-            "__context_of_kind", "RCTransport",
+            "__context_of_kind", uicontext,
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
             "Title", T{AutoGatherTransport.StringIdBase + 50, "Gather Polymer"},
@@ -546,7 +546,7 @@ function AutoGatherAddInfoSection()
     -- Filter for waste rock deposits
     table.insert(XTemplates.ipRover[1], 
         PlaceObj("XTemplateTemplate", {
-            "__context_of_kind", "RCTransport",
+            "__context_of_kind", uicontext,
             "__template", "InfopanelActiveSection",
             "Icon", "UI/Icons/Upgrades/factory_ai_02.tga",
             "Title", T{AutoGatherTransport.StringIdBase + 100, "Gather Waste Rock"},
@@ -581,6 +581,18 @@ function AutoGatherAddInfoSection()
             })
         })
     )
+end
+
+function AutoGatherAddInfoSection()
+    -- if the templates have been added, don't add them again
+    -- I don't know how to remove them as it breaks the UI with just nil-ing them out
+    if table.find(XTemplates.ipRover[1], "UniqueId", "AutoGatherTransport-1") then
+        return
+    end
+
+    AutoGatherAddInfoSectionFor("RCTransport")
+    AutoGatherAddInfoSectionFor("RCHarvester")
+    AutoGatherAddInfoSectionFor("RCConstructor")
 end
 
 -- Setup ModConfig UI
