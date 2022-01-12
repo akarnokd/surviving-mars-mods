@@ -82,9 +82,11 @@ end
 
 -- enumerate objects of a given City label
 function AutoGatherForEachLabel(label, func)
-    for _, obj in ipairs(MainCity.labels[label] or empty_table) do
-        if func(obj) == "break" then
-            return
+    for _, c in ipairs(Cities) do
+        for _, obj in ipairs(c.labels[label] or empty_table) do
+            if func(obj) == "break" then
+                return
+            end
         end
     end
 end
