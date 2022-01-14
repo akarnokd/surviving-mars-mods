@@ -593,8 +593,8 @@ function AutoGatherAddInfoSection()
     end
 
     AutoGatherAddInfoSectionFor("RCTransport")
-    AutoGatherAddInfoSectionFor("RCHarvester")
-    AutoGatherAddInfoSectionFor("RCConstructor")
+    -- AutoGatherAddInfoSectionFor("RCHarvester")
+    -- AutoGatherAddInfoSectionFor("RCConstructor")
 end
 
 -- Setup ModConfig UI
